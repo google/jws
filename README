@@ -1,0 +1,5 @@
+## README
+** This is not an officially supported Google project **
+
+Cryptojwt re-written by Quan Nguyen to fix security problems.
+This is a JWS RFC implementation in Python.
