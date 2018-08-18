@@ -12,10 +12,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-"""Tests for google3.experimental.users.quannguyen.python.jwslib.jws."""
+"""Tests for jws."""
 
 import json
 import unittest
+
+from jws import jwsutil
+from jws import jws
+
+from jws.cleartext_jwk_set_reader import CleartextJwkSetReader
 
 __author__ = 'quannguyen@google.com (Quan Nguyen)'
 

@@ -34,6 +34,8 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import hmac
 import six
 
+from mac import Mac
+
 class Hmac(Mac):
   """HMAC(rfc2104) with cryptography.io."""
 

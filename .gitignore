@@ -1,0 +1,6 @@
+*.pyc
+*.so
+*.egg-info
+*.swp
+build
+dist
