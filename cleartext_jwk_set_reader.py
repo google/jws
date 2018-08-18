@@ -35,10 +35,6 @@ from cryptography.hazmat import backends
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-from google3.experimental.users.quannguyen.jwslib import util as jwsutil
-from google3.experimental.users.quannguyen.jwslib.jwk import Jwk
-from google3.experimental.users.quannguyen.jwslib.jwk import JwkSet
-
 
 # TODO(quannguyen): Reach out to ise-hardening@ for visibility restriction of
 # this class and Jwk/JwkSet.

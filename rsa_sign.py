@@ -22,9 +22,6 @@ __author__ = "quannguyen@google.com (Quan Nguyen)"
 from cryptography.hazmat.primitives.asymmetric import rsa
 import six
 
-from google3.experimental.users.quannguyen.jwslib import util as jwsutil
-from google3.experimental.users.quannguyen.jwslib.public_key_sign import PublicKeySign
-
 
 class RsaSign(PublicKeySign):
   """RSA signing with cryptography.io."""

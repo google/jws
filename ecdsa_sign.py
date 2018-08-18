@@ -33,9 +33,6 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 import six
 
-from google3.experimental.users.quannguyen.jwslib.public_key_sign import PublicKeySign
-
-
 class EcdsaSign(PublicKeySign):
   """ECDSA signing with cryptography.io."""
 

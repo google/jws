@@ -43,13 +43,6 @@ from cryptography import exceptions
 from cryptography.hazmat.primitives.asymmetric import utils
 import six
 
-from google3.experimental.users.quannguyen.jwslib import util as jwsutil
-from google3.experimental.users.quannguyen.jwslib.ecdsa_sign import EcdsaSign
-from google3.experimental.users.quannguyen.jwslib.ecdsa_verify import EcdsaVerify
-from google3.experimental.users.quannguyen.jwslib.hmac import Hmac
-from google3.experimental.users.quannguyen.jwslib.rsa_sign import RsaSign
-from google3.experimental.users.quannguyen.jwslib.rsa_verify import RsaVerify
-
 
 class JwsPublicKeyVerify(object):
   """JWS Public Key Verifier which supports Rsa and Ecdsa signature schemes."""

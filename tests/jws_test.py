@@ -17,9 +17,6 @@ limitations under the License."""
 import json
 import unittest
 
-from google3.experimental.users.quannguyen.jwslib import jws
-from google3.experimental.users.quannguyen.jwslib import util as jwsutil
-from google3.experimental.users.quannguyen.jwslib.cleartext_jwk_set_reader import CleartextJwkSetReader
 __author__ = 'quannguyen@google.com (Quan Nguyen)'
 
 
