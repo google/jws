@@ -1,7 +1,7 @@
 # Json Web Signature (JWS)
   
-## Motivation
-JWT (rfc7519) is widely used. However, the RFC standards JSON Web Encryption (JWE) (rfc7516), JSON Web Signature (JWS) (rfc7515), JSON Web Token (JWT) (rfc7519) contain several design mistakes which make both implementations and use of JWT dangerous. For instance, existing researchs such as [Critical vulnerabilities in JSON Web Token libraries](https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/), [Practical Cryptanalysis of Json Web Token](https://rwc.iacr.org/2017/Slides/nguyen.quan.pdf), [High risk vulnerability in RFC 7515](https://mailarchive.ietf.org/arch/msg/jose/gQU_C_QURVuwmy-Q2qyVwPLQlcg) showed several vulnerabilities at design and implementation level. Therefore, we will only implement a safe subset of it. [JWS Compact Serialization](https://tools.ietf.org/html/rfc7515#section-7.1) while not ideal, is the safest option and covers the majority of use case. We'll harden the API to make it difficult to misuse.
+## Introduction
+JWT (rfc7519) is widely used. However, the RFC standards JSON Web Encryption (JWE) (rfc7516), JSON Web Signature (JWS) (rfc7515), JSON Web Token (JWT) (rfc7519) contain several design mistakes which make both implementations and use of JWT dangerous. For instance, existing researchs such as [Critical vulnerabilities in JSON Web Token libraries](https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/), [Practical Cryptanalysis of Json Web Token](https://rwc.iacr.org/2017/Slides/nguyen.quan.pdf), [High risk vulnerability in RFC 7515](https://mailarchive.ietf.org/arch/msg/jose/gQU_C_QURVuwmy-Q2qyVwPLQlcg) showed several vulnerabilities at design and implementation level. Therefore, we will only implement a safe subset of it. [JWS Compact Serialization](https://tools.ietf.org/html/rfc7515#section-7.1) while not ideal, is the safest option and covers the majority of use cases. We'll harden the API to make it difficult to misuse.
 
 ## Scope
  * [JWS Compact Serialization](https://tools.ietf.org/html/rfc7515#section-7.1)
@@ -30,7 +30,7 @@ While MAC and signature are both used to authenticate data, they’re distinct s
 While it’s tempting to merge them together, for one key, the typical use case is one side generates the signature and the other side verifies the signature. Furthermore, the key protection mechanism of signer and verifier is different. For verifier, we only need to protect the integrity of the key while for signer, we have to protect both the integrity and confidentiality of the key.
 
 ### “kid” (Key ID): signed or unsigned?
-“kid” is used as hint indicating which key should be used for verification. RFC7515 doesn’t specify whether “kid” should be signed or unsigned. For instance, https://tools.ietf.org/html/rfc7515#appendix-A.6.2 shows an unsigned “kid”. However, as we only support Json Compact Serialization where the header is signed, “kid” must be signed. This is consistent with existing use-case that we're aware of.
+“kid” is used as hint indicating which key should be used for verification. RFC7515 doesn’t specify whether “kid” should be signed or unsigned. For instance, https://tools.ietf.org/html/rfc7515#appendix-A.6.2 shows an unsigned “kid”. However, as we only support Json Compact Serialization where the header is signed, “kid” must be signed. This is consistent with existing use cases that we're aware of.
 
 ### Multiple keys to support key rotation/update
 For JwsPublicKeyVerify, JwsMacVerify, we support key configuration that accepts multiple keys and “kid”. This feature is helpful in key rotation/update when the receiver doesn’t know in advance which key should be used for verification.
