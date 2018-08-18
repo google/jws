@@ -35,8 +35,9 @@ While it’s tempting to merge them together, for one key, the typical use case 
 ### Multiple keys to support key rotation/update
 For JwsPublicKeyVerify, JwsMacVerify, we support key configuration that accepts multiple keys and “kid”. This feature is helpful in key rotation/update when the receiver doesn’t know in advance which key should be used for verification.
 The main difficulty in JWT is that at the time of parsing JWK, key type or kid don’t fully specify what algorithm will be used during sign/verify or compute_mac/verify_mac. For instance, let’s look at the key:
-{"kty":"oct", "k":"AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75
-     aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow", "kid":"1234"}
+
+  * {"kty":"oct", "k":"AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow", "kid":"1234"}
+
 There is no way to tell whether the key should be used as encryption key or HMAC key. Even if we know that it’s used as HMAC key, we still don’t know what hash function should be used during HMAC verification. One way to mitigate this issue is to enforce the field “alg” as defined at https://tools.ietf.org/html/rfc7517#section-4. Key without “alg” field is rejected. 
 Note that for signer, we only support 1 key. There are 2 reasons:
 
