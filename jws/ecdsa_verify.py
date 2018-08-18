@@ -33,6 +33,8 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 import six
 
+from public_key_verify import PublicKeyVerify
+
 class EcdsaVerify(PublicKeyVerify):
   """ECDSA verifying with cryptography.io."""
 
