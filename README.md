@@ -44,5 +44,17 @@ Note that for signer, we only support 1 key. There are 2 reasons:
  * Signer with multiple keys is rare, even in key rotation. The typical use case is that the signer switches to new key immediately, while the verifier has some grace period to use both the old key and a new key for verification. Furthermore, if the user needs to use multiple keys in signing, it’s trivial to just create 2 signers; it’s inconvenient but it doesn’t harm security.
  * To support multiple keys, we have to specify the primary key and default key, otherwise the signer wouldn’t know which key should be used to sign data. This makes the design and implementation unnecessary complicated for the main use case.
 
+## Installation
+To install jws:
+```
+git clone https://github.com/google/jws
+cd jws
+sudo python setup.py install
+```
+
+To test jws:
+```
+python setup.py test
+```
 
 > This is not an official Google product.
