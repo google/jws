@@ -3,12 +3,13 @@
 ## Motivation
 JWT (rfc7519) is widely used. However, the RFC standards JSON Web Encryption (JWE) (rfc7516), JSON Web Signature (JWS) (rfc7515), JSON Web Token (JWT) (rfc7519) contain several design mistakes which make both implementations and use of JWT dangerous. For instance, existing researchs such as [Critical vulnerabilities in JSON Web Token libraries](https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/), [Practical Cryptanalysis of Json Web Token](https://rwc.iacr.org/2017/Slides/nguyen.quan.pdf) and [High risk vulnerability in RFC 7515](https://mailarchive.ietf.org/arch/msg/jose/gQU_C_QURVuwmy-Q2qyVwPLQlcg) showed several vulnerabilities at design and implementation level. Therefore, we will only implement a safe subset of it. [JWS Compact Serialization](https://tools.ietf.org/html/rfc7515#section-7.1) while not ideal, is the safest option and covers the majority of use case. We'll harden the API to make it difficult to misuse.
 
-## Scope of library
+## Scope
  * [JWS Compact Serialization](https://tools.ietf.org/html/rfc7515#section-7.1)
 
-## Not in Scope for this proposal
-We will not support Json Web Encryption (JWE) or JWS JSON Serialization. Defining a new better standard is out of scope of this proposal because it would break compatibility.
-After signature verification, we have to check the claims https://tools.ietf.org/html/rfc7519#section-4. These claims are use-case specific and are not related to cryptography. Users will handle claim verification themselves.
+## Not in scope of the library
+ * We will not support Json Web Encryption (JWE) or JWS JSON Serialization. 
+ * Defining a new better standard is out of scope of this library because it would break compatibility.
+ * After signature verification, we have to check the claims https://tools.ietf.org/html/rfc7519#section-4. These claims are use-case specific and are not related to cryptography. Users will handle claim verification themselves.
 
 ## Security principles
 
