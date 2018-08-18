@@ -14,6 +14,9 @@ limitations under the License."""
 
 """Tests for jws."""
 
+__author__ = 'quannguyen@google.com (Quan Nguyen)'
+
+
 import json
 import unittest
 
@@ -21,9 +24,6 @@ from jws import jwsutil
 from jws import jws
 
 from jws.cleartext_jwk_set_reader import CleartextJwkSetReader
-
-__author__ = 'quannguyen@google.com (Quan Nguyen)'
-
 
 # TODO(quannguyen): Add more tests.
 class JwsTest(unittest.TestCase):
@@ -162,7 +162,8 @@ class JwsTest(unittest.TestCase):
 
     # Use phase
     self.assertTrue(verifier.verify(self.rsa_token))
-    self.assertFalse(verifier.verify(_modify_token(self.rsa_token)))
+    for modified_token in _modify_token(self.rsa_token):
+      self.assertFalse(verifier.verify(modified_token))
 
   def test_jws_rsa_signer_and_verifier(self):
     # Sign
@@ -174,7 +175,8 @@ class JwsTest(unittest.TestCase):
     pub_key = CleartextJwkSetReader.from_json(self.json_rsa_pub_key)
     verifier = jws.JwsPublicKeyVerify(pub_key)
     self.assertTrue(verifier.verify(signed_token))
-    self.assertFalse(verifier.verify(_modify_token(signed_token)))
+    for modified_token in _modify_token(signed_token):
+      self.assertFalse(verifier.verify(modified_token))
 
   def test_jws_ecdsa_verifier_with_rfc(self):
     # Set up phase: parse the key and initialize the verifier.
@@ -183,7 +185,8 @@ class JwsTest(unittest.TestCase):
 
     # Use phase
     self.assertTrue(verifier.verify(self.ecdsa_token))
-    self.assertFalse(verifier.verify(_modify_token(self.ecdsa_token)))
+    for modified_token in _modify_token(self.ecdsa_token):
+      self.assertFalse(verifier.verify(modified_token))
 
   def test_jws_ecdsa_signer_verifier(self):
     # Sign
@@ -195,7 +198,9 @@ class JwsTest(unittest.TestCase):
     pub_key = CleartextJwkSetReader.from_json(self.json_ecdsa_pub_key)
     verifier = jws.JwsPublicKeyVerify(pub_key)
     self.assertTrue(verifier.verify(signed_token))
-    self.assertFalse(verifier.verify(_modify_token(signed_token)))
+    for modified_token in _modify_token(signed_token):
+      self.assertFalse(verifier.verify(modified_token))
+
 
   def test_jws_verifier_with_multiple_keys(self):
     # Set up phase: parse the keys and initialize the verifier.
@@ -205,8 +210,11 @@ class JwsTest(unittest.TestCase):
     # Use phase
     self.assertTrue(verifier.verify(self.rsa_token))
     self.assertTrue(verifier.verify(self.ecdsa_token))
-    self.assertFalse(verifier.verify(_modify_token(self.ecdsa_token)))
-    self.assertFalse(verifier.verify(_modify_token(self.rsa_token)))
+    for modified_token in _modify_token(self.rsa_token):
+      self.assertFalse(verifier.verify(modified_token))
+    for modified_token in _modify_token(self.ecdsa_token):
+      self.assertFalse(verifier.verify(modified_token))
+
 
   def test_jws_verifier_with_kid(self):
     # Sign
@@ -225,6 +233,7 @@ class JwsTest(unittest.TestCase):
     # The signature is valid but the kids don't match.
     self.assertFalse(verifier.verify(signed_token_kid2))
 
+
   def test_jws_mac_verifier_with_rfc(self):
     # Set up phase: parse the key and initialize the JwsMacVerify
     key = CleartextJwkSetReader.from_json(self.json_hmac_key)
@@ -232,7 +241,9 @@ class JwsTest(unittest.TestCase):
 
     # Use phase
     self.assertTrue(verifier.verify(self.hmac_token))
-    self.assertFalse(verifier.verify(_modify_token(self.hmac_token)))
+    for modified_token in _modify_token(self.hmac_token):
+      self.assertFalse(verifier.verify(modified_token))
+
 
   def test_jws_mac_authenticator_and_verifier(self):
     # Authenticator
@@ -243,15 +254,31 @@ class JwsTest(unittest.TestCase):
     # Verify
     verifier = jws.JwsMacVerify(mac_key)
     self.assertTrue(verifier.verify(signed_token))
-    self.assertFalse(verifier.verify(_modify_token(signed_token)))
+    for modified_token in _modify_token(signed_token):
+      self.assertFalse(verifier.verify(modified_token))
 
 
 def _modify_token(token):
-  [header, payload, sig] = token.split('.')
-  decoded_sig = jwsutil.urlsafe_b64decode(sig)
-  # Change the last byte.
-  decoded_sig = decoded_sig[:-1] + chr(ord(decoded_sig[-1]) ^ 1)
-  return header + '.' + payload + '.' + jwsutil.urlsafe_b64encode(decoded_sig)
+  parts = token.split('.')
+  assert(len(parts) == 3)
+  for i in range(len(parts)):
+    modified_parts = parts[:]
+    decoded_part = jwsutil.urlsafe_b64decode(modified_parts[i])
+    for s in _modify_str(decoded_part):
+      modified_parts[i] = jwsutil.urlsafe_b64encode(s)
+      yield (modified_parts[0] + b"." + modified_parts[1] + b"." + modified_parts[2])
+
+
+def _modify_str(s):
+  # Modify each bit of string. 
+  for i in range(len(s)):
+    c = s[i]
+    for j in range(8):
+      yield (s[:i] + chr(ord(c)^(1<<j)) + s[i:])
+
+  # Truncate string.
+  for i in range(len(s)):
+    yield s[:i]
 
 
 if __name__ == '__main__':

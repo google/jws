@@ -54,7 +54,7 @@ sudo python setup.py install
 
 To test jws:
 ```
-python setup.py test
+sudo python setup.py test
 ```
 
 > This is not an official Google product.
