@@ -57,4 +57,27 @@ To test jws:
 sudo python setup.py test
 ```
 
+## Usage
+
+```
+from jws import jws
+from jws.cleartext_jwk_set_reader import CleartextJwkSetReader
+
+es512_ecdsa_token = 'eyJhbGciOiJFUzUxMiJ9.UGF5bG9hZA.AdwMgeerwtHoh-l192l60hp9wAHZFVJbLfD_UxMi70cwnZOYaRI1bKPWROc-mZZqwqT2SI-KGDKB34XO0aw_7XdtAG8GaSwFKdCAPZgoXD2YBJZCPEX3xKpRwcdOO8KpEHwJjyqOgzDO7iKvU8vcnwNrmxYbSW9ERBXukOXolLzeO_Jn'
+es512_ecdsa_pub_key = r"""
+    {
+      "kty":"EC",
+      "crv":"P-521",
+      "x":"AekpBQ8ST8a8VcfVOTNl353vSrDCLLJXmPk06wTjxrrjcBpXp5EOnYG_NjFZ6OvLFV1jSfS9tsz4qUxcWceqwQGk",
+      "y":"ADSmRA43Z1DSNx_RvcLI87cdL07l6jQyyBXMoxVg_l2Th-x3S1WDhjDly79ajL4Kkd0AZMaZmh9ubmf63e3kyMj2",
+      "alg":"ES512"
+    }"""
+# Set up phase: parse the key and initialize the verifier.
+key = CleartextJwkSetReader.from_json(es512_ecdsa_pub_key)
+verifier = jws.JwsPublicKeyVerify(key)
+
+# Verify phase
+verified = verifier.verify(es512_ecdsa_token)
+```
+
 > This is not an official Google product.
