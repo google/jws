@@ -187,17 +187,30 @@ class JwsTest(unittest.TestCase):
       self.assertFalse(verifier.verify(modified_token))
 
   def test_jws_rsa_signer_and_verifier(self):
-    # Sign
-    priv_key = CleartextJwkSetReader.from_json(self.json_rsa_priv_key)
-    signer = jws.JwsPublicKeySign(priv_key)
-    signed_token = signer.sign(self.test_header_rsa, self.test_payload)
+    algs = ["RS256", "RS384", "RS512", "PS256", "PS384", "PS512"]
+    for alg in algs:
+      json_priv_key = json.loads(self.json_rsa_priv_key)
+      json_priv_key["alg"] = alg
+      json_priv_key = json.dumps(json_priv_key)
+      json_pub_key = json.loads(self.json_rsa_pub_key)
+      json_pub_key["alg"] = alg
+      json_pub_key = json.dumps(json_pub_key)
+ 
+      json_header_rsa = json.loads(self.test_header_rsa)
+      json_header_rsa["alg"] = alg
+      json_header_rsa = json.dumps(json_header_rsa)
+   
+      # Sign
+      priv_key = CleartextJwkSetReader.from_json(json_priv_key)
+      signer = jws.JwsPublicKeySign(priv_key)
+      signed_token = signer.sign(json_header_rsa, self.test_payload)
 
-    # Verify
-    pub_key = CleartextJwkSetReader.from_json(self.json_rsa_pub_key)
-    verifier = jws.JwsPublicKeyVerify(pub_key)
-    self.assertTrue(verifier.verify(signed_token))
-    for modified_token in _modify_token(signed_token):
-      self.assertFalse(verifier.verify(modified_token))
+      # Verify
+      pub_key = CleartextJwkSetReader.from_json(json_pub_key)
+      verifier = jws.JwsPublicKeyVerify(pub_key)
+      self.assertTrue(verifier.verify(signed_token))
+      for modified_token in _modify_token(signed_token):
+        self.assertFalse(verifier.verify(modified_token))
 
   def test_jws_ecdsa_verifier_with_rfc_es256(self):
     # Set up phase: parse the key and initialize the verifier.
@@ -218,7 +231,6 @@ class JwsTest(unittest.TestCase):
     self.assertTrue(verifier.verify(self.es512_ecdsa_token))
     for modified_token in _modify_token(self.es512_ecdsa_token):
       self.assertFalse(verifier.verify(modified_token))
-
 
   def test_jws_ecdsa_signer_verifier_es256(self):
     # Sign
@@ -278,16 +290,25 @@ class JwsTest(unittest.TestCase):
 
 
   def test_jws_mac_authenticator_and_verifier(self):
-    # Authenticator
-    mac_key = CleartextJwkSetReader.from_json(self.json_hmac_key)
-    authenticator = jws.JwsMacAuthenticator(mac_key)
-    signed_token = authenticator.authenticate(self.test_header_hmac,
-                                              self.test_payload)
-    # Verify
-    verifier = jws.JwsMacVerify(mac_key)
-    self.assertTrue(verifier.verify(signed_token))
-    for modified_token in _modify_token(signed_token):
-      self.assertFalse(verifier.verify(modified_token))
+    algs = ["HS256", "HS384", "HS512"]
+    for alg in algs:
+      json_hmac_key = json.loads(self.json_hmac_key)
+      json_hmac_key["alg"] = alg
+      json_hmac_key = json.dumps(json_hmac_key)
+      json_header_hmac = json.loads(self.test_header_hmac)
+      json_header_hmac["alg"] = alg
+      json_header_hmac = json.dumps(json_header_hmac)
+    
+      # Authenticator
+      mac_key = CleartextJwkSetReader.from_json(json_hmac_key)
+      authenticator = jws.JwsMacAuthenticator(mac_key)
+      signed_token = authenticator.authenticate(json_header_hmac,
+                                                self.test_payload)
+      # Verify
+      verifier = jws.JwsMacVerify(mac_key)
+      self.assertTrue(verifier.verify(signed_token))
+      for modified_token in _modify_token(signed_token):
+        self.assertFalse(verifier.verify(modified_token))
 
 
 def _modify_token(token):
