@@ -62,10 +62,9 @@ class JwsTest(unittest.TestCase):
   rsa_token = 'eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.cC4hiUPoj9Eetdgtv3hF80EGrhuB__dzERat0XF9g2VtQgr9PJbu3XOiZj5RZmh7AAuHIm4Bh-0Qc_lF5YKt_O8W2Fp5jujGbds9uJdbF9CUAr7t1dnZcAcQjbKBYNX4BAynRFdiuB--f_nZLgrnbyTyWzO75vRK5h6xBArLIARNPvkSjtQBMHlb1L07Qe7K0GarZRmB_eSN9383LcOLn6_dO--xi12jzDwusC-eOkHWEsqtFZESc6BfI7noOPqvhJ1phCnvWh6IeYI2w9QOYEUipUTI8np6LbgGY9Fs98rqVt5AXLIhWkWywlVmtVrBp0igcN_IoypGlUPQGe77Rw'
 
   # Test vector from https://tools.ietf.org/html/rfc7515#appendix-A.3
-  ecdsa_token = 'eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.DtEhU3ljbEg8L38VWAfUAqOyKAM6-Xx-F4GawxaepmXFCgfTjDxw5djxLa8ISlSApmWQxfKTUJqPP3-Kg6NU1Q'
+  es256_ecdsa_token = 'eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.DtEhU3ljbEg8L38VWAfUAqOyKAM6-Xx-F4GawxaepmXFCgfTjDxw5djxLa8ISlSApmWQxfKTUJqPP3-Kg6NU1Q'
 
-  # Test vector from https://tools.ietf.org/html/rfc7515#appendix-A.3
-  json_ecdsa_priv_key = r"""
+  es256_ecdsa_priv_key = r"""
     {
       "kty":"EC",
       "crv":"P-256",
@@ -75,7 +74,7 @@ class JwsTest(unittest.TestCase):
       "alg":"ES256"
     }"""
 
-  json_ecdsa_pub_key = r"""
+  es256_ecdsa_pub_key = r"""
     {
       "kty":"EC",
       "crv":"P-256",
@@ -84,6 +83,28 @@ class JwsTest(unittest.TestCase):
       "alg":"ES256"
     }"""
 
+  # Test vector from https://tools.ietf.org/html/rfc7515#appendix-A.4.
+  es512_ecdsa_token = 'eyJhbGciOiJFUzUxMiJ9.UGF5bG9hZA.AdwMgeerwtHoh-l192l60hp9wAHZFVJbLfD_UxMi70cwnZOYaRI1bKPWROc-mZZqwqT2SI-KGDKB34XO0aw_7XdtAG8GaSwFKdCAPZgoXD2YBJZCPEX3xKpRwcdOO8KpEHwJjyqOgzDO7iKvU8vcnwNrmxYbSW9ERBXukOXolLzeO_Jn'
+
+  es512_ecdsa_priv_key = r"""
+    {
+      "kty":"EC",
+      "crv":"P-521",
+      "x":"AekpBQ8ST8a8VcfVOTNl353vSrDCLLJXmPk06wTjxrrjcBpXp5EOnYG_NjFZ6OvLFV1jSfS9tsz4qUxcWceqwQGk",
+      "y":"ADSmRA43Z1DSNx_RvcLI87cdL07l6jQyyBXMoxVg_l2Th-x3S1WDhjDly79ajL4Kkd0AZMaZmh9ubmf63e3kyMj2",
+      "d":"AY5pb7A0UFiB3RELSD64fTLOSV_jazdF7fLYyuTw8lOfRhWg6Y6rUrPAxerEzgdRhajnu0ferB0d53vM9mE15j2C",
+      "alg":"ES512"
+    }"""
+
+  es512_ecdsa_pub_key = r"""
+    {
+      "kty":"EC",
+      "crv":"P-521",
+      "x":"AekpBQ8ST8a8VcfVOTNl353vSrDCLLJXmPk06wTjxrrjcBpXp5EOnYG_NjFZ6OvLFV1jSfS9tsz4qUxcWceqwQGk",
+      "y":"ADSmRA43Z1DSNx_RvcLI87cdL07l6jQyyBXMoxVg_l2Th-x3S1WDhjDly79ajL4Kkd0AZMaZmh9ubmf63e3kyMj2",
+      "alg":"ES512"
+    }"""
+ 
   # Test vector from https://tools.ietf.org/html/rfc7515#appendix-A.1
   json_hmac_key = r"""
     {
@@ -96,7 +117,7 @@ class JwsTest(unittest.TestCase):
   hmac_token = 'eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk'
 
   # Key set containing multiple public keys.
-  json_pub_keys = r"""{"keys":[""" + json_rsa_pub_key + ',' + json_ecdsa_pub_key + r"""]}"""
+  json_pub_keys = r"""{"keys":[""" + json_rsa_pub_key + ',' + es256_ecdsa_pub_key + r"""]}"""
 
   # The followings are our own tests.
 
@@ -178,24 +199,35 @@ class JwsTest(unittest.TestCase):
     for modified_token in _modify_token(signed_token):
       self.assertFalse(verifier.verify(modified_token))
 
-  def test_jws_ecdsa_verifier_with_rfc(self):
+  def test_jws_ecdsa_verifier_with_rfc_es256(self):
     # Set up phase: parse the key and initialize the verifier.
-    key = CleartextJwkSetReader.from_json(self.json_ecdsa_pub_key)
+    key = CleartextJwkSetReader.from_json(self.es256_ecdsa_pub_key)
     verifier = jws.JwsPublicKeyVerify(key)
 
     # Use phase
-    self.assertTrue(verifier.verify(self.ecdsa_token))
-    for modified_token in _modify_token(self.ecdsa_token):
+    self.assertTrue(verifier.verify(self.es256_ecdsa_token))
+    for modified_token in _modify_token(self.es256_ecdsa_token):
       self.assertFalse(verifier.verify(modified_token))
 
-  def test_jws_ecdsa_signer_verifier(self):
+  def test_jws_ecdsa_verifier_with_rfc_es512(self):
+    # Set up phase: parse the key and initialize the verifier.
+    key = CleartextJwkSetReader.from_json(self.es512_ecdsa_pub_key)
+    verifier = jws.JwsPublicKeyVerify(key)
+
+    # Use phase
+    self.assertTrue(verifier.verify(self.es512_ecdsa_token))
+    for modified_token in _modify_token(self.es512_ecdsa_token):
+      self.assertFalse(verifier.verify(modified_token))
+
+
+  def test_jws_ecdsa_signer_verifier_es256(self):
     # Sign
-    priv_key = CleartextJwkSetReader.from_json(self.json_ecdsa_priv_key)
+    priv_key = CleartextJwkSetReader.from_json(self.es256_ecdsa_priv_key)
     signer = jws.JwsPublicKeySign(priv_key)
     signed_token = signer.sign(self.test_header_ecdsa, self.test_payload)
 
     # Verify
-    pub_key = CleartextJwkSetReader.from_json(self.json_ecdsa_pub_key)
+    pub_key = CleartextJwkSetReader.from_json(self.es256_ecdsa_pub_key)
     verifier = jws.JwsPublicKeyVerify(pub_key)
     self.assertTrue(verifier.verify(signed_token))
     for modified_token in _modify_token(signed_token):
@@ -209,10 +241,10 @@ class JwsTest(unittest.TestCase):
 
     # Use phase
     self.assertTrue(verifier.verify(self.rsa_token))
-    self.assertTrue(verifier.verify(self.ecdsa_token))
+    self.assertTrue(verifier.verify(self.es256_ecdsa_token))
     for modified_token in _modify_token(self.rsa_token):
       self.assertFalse(verifier.verify(modified_token))
-    for modified_token in _modify_token(self.ecdsa_token):
+    for modified_token in _modify_token(self.es256_ecdsa_token):
       self.assertFalse(verifier.verify(modified_token))
 
 

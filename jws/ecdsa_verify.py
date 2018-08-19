@@ -61,7 +61,7 @@ class EcdsaVerify(PublicKeyVerify):
     elif algorithm == "ES384":
       self.hash = hashes.SHA384()
       curve_name = "secp384r1"
-    elif algorithm == "ES521":
+    elif algorithm == "ES512":
       self.hash = hashes.SHA512()
       curve_name = "secp521r1"
     else:
