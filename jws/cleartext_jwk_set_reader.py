@@ -23,7 +23,6 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
-
 """Static methods for reading cleartext keysets."""
 
 __author__ = "quannguyen@google.com (quan nguyen)"
@@ -35,12 +34,11 @@ from cryptography.hazmat import backends
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-import jwsutil 
+import jwsutil
 from jwk import Jwk
 from jwk import JwkSet
 
-# TODO(quannguyen): Reach out to ise-hardening@ for visibility restriction of
-# this class and Jwk/JwkSet.
+
 class CleartextJwkSetReader(object):
   """Static methods for reading cleartext keysets."""
 
