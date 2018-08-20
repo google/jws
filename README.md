@@ -34,10 +34,12 @@ We'll harden the API to make it difficult to misuse.
     security reasons.
 *   Defining a new better standard is out of scope of this library because it
     would break compatibility.
-*   After signature verification, we have to check the claims
-    https://tools.ietf.org/html/rfc7519#section-4. These claims are use-case
-    specific and are not related to cryptography. Users will handle claim
-    verification themselves.
+*   After signature verification, we have to check the
+    [claims](https://tools.ietf.org/html/rfc7519#section-4) including
+    [public claims](https://tools.ietf.org/html/rfc7519#section-4.2) and
+    [private claims](https://tools.ietf.org/html/rfc7519#section-4.3). These
+    claims are use-case specific and are not related to cryptography. Users will
+    handle claim verification themselves.
 
 ## Security principles
 
