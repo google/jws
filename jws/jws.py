@@ -1,5 +1,4 @@
-"""
-Copyright 2018 Google LLC
+"""Copyright 2018 Google LLC
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,7 +24,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
 """Json Web Signature (JWS) in compact serialization format.
 
 Json Web Signature (Rfc7515) is a complicated standard with several dangerous
@@ -49,6 +47,7 @@ from ecdsa_verify import EcdsaVerify
 from hmac import Hmac
 from rsa_sign import RsaSign
 from rsa_verify import RsaVerify
+
 
 class JwsPublicKeyVerify(object):
   """JWS Public Key Verifier which supports Rsa and Ecdsa signature schemes."""

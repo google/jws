@@ -17,7 +17,14 @@ We'll harden the API to make it difficult to misuse.
 
 ## Scope
 
-*   [JWS Compact Serialization](https://tools.ietf.org/html/rfc7515#section-7.1)
+*   [JWS Compact Serialization](https://tools.ietf.org/html/rfc7515#section-7.1).
+    The library supports all
+    [algorithms for digital signature and MACs](https://tools.ietf.org/html/rfc7518#section-3.1),
+    in particular:
+    *   HMAC.
+    *   RSA signature using PKCS1_v1_5 padding.
+    *   RSA signature using PSS padding.
+    *   ECDSA signature.
 *   A subset of [JSON Web Key (JWK)](https://tools.ietf.org/html/rfc7517) where
     we eliminate easy-to-misuse options such as "x5c", "x5u".
 

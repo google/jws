@@ -23,7 +23,6 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
-
 """An implementation of Mac for HMAC(rfc2104)."""
 
 __author__ = "quannguyen@google.com (Quan Nguyen)"
@@ -35,6 +34,7 @@ from cryptography.hazmat.primitives import hmac
 import six
 
 from mac import Mac
+
 
 class Hmac(Mac):
   """HMAC(rfc2104) with cryptography.io."""

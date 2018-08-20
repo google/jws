@@ -11,7 +11,6 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
-
 """An implementation of PublicKeySign for RSA.
 
 The implementation supports both PKCS1-v1_5 and PSS signatures.
@@ -24,6 +23,7 @@ import six
 
 import jwsutil
 from public_key_sign import PublicKeySign
+
 
 class RsaSign(PublicKeySign):
   """RSA signing with cryptography.io."""
