@@ -28,16 +28,15 @@ from setuptools import setup
 from setuptools import find_packages
 
 with open('README.md') as f:
-    long_description = f.read()
+  long_description = f.read()
 
 with open('LICENSE') as f:
-    license = f.read()
-
+  license = f.read()
 
 setup(
     name='jws',
     version='0.1',
-    description='Json Web Signature (JWS).',
+    description='JSON Web Signature (JWS).',
     long_description=long_description,
     author='Quan Nguyen',
     author_email='quannguyen@google.com',
