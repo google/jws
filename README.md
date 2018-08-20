@@ -1,4 +1,4 @@
-# Json Web Signature (JWS)
+# JSON Web Signature (JWS)
 
 ## Introduction
 
@@ -18,6 +18,8 @@ We'll harden the API to make it difficult to misuse.
 ## Scope
 
 *   [JWS Compact Serialization](https://tools.ietf.org/html/rfc7515#section-7.1)
+*   A subset of [JSON Web Key (JWK)](https://tools.ietf.org/html/rfc7517) where
+    we eliminate easy-to-misuse options such as "x5c", "x5u".
 
 ## Out of scope
 
