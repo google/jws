@@ -115,8 +115,12 @@ rejected. Note that for signer, we only support 1 key. There are 2 reasons:
 
 ## Installation
 
-To install jws: `git clone https://github.com/google/jws cd jws sudo python
-setup.py install`
+To install jws: 
+```
+git clone https://github.com/google/jws
+cd jws sudo python
+setup.py install
+```
 
 To test jws: `sudo python setup.py test`
 
