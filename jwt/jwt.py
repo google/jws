@@ -81,6 +81,110 @@ class JwtPublicKeyVerify(object):
     return _verify_claims(payload, self.issuer, self.subject, self.audiences)
 
 
+class JwtPublicKeySign(object):
+  """Jwt public key signer that suppports both Ecdsa and Rsa signature schemes.
+  """
+
+  def __init__(self, jwk_set):
+    """Constructor for JwtPublicKeySign.
+
+    Args:
+      jwk_set: a JwkSet.
+
+    Raises:
+      UnsupportedAlgorithm: if the algorihtm is not defined at
+      https://tools.ietf.org/html/rfc7518#section-3.1 or if jwk is not Rsa or
+      Ecdsa key.
+    """
+    self.signer = jws.JwsPublicKeySign(jwk_set)
+
+  def sign(self, header, payload):
+    """Computes the signed jwt as defined at rfc7515#section-7.1.
+
+    Args:
+      header: bytes, the header to be signed.
+      payload: bytes, the payload to be signed.
+
+    Returns:
+      base64url(header) || '.' || base64url(payload) || '.' ||
+      base64url(signature), where the signature is computed over
+      base64url(utf8(header)) || '.' || base64url(payload).
+    """
+    return self.signer.sign(header, payload)
+
+
+class JwtMacVerify(object):
+  """Jwt Mac Verifier that verifies both message authentication code and claims."""
+
+  def __init__(self, jwk_set, issuer=None, subject=None, audiences=None):
+    """Constructor for JwtMacVerify.
+
+    Args:
+      jwk_set: a JwkSet.
+      issuer: string, the issuer claim as defined at
+        https://tools.ietf.org/html/rfc7519#section-4.1.1.
+      subject: string, the subject claim as defined at
+        https://tools.ietf.org/html/rfc7519#section-4.1.2.
+      audiences: list of string, the audiences claim as defined at
+        https://tools.ietf.org/html/rfc7519#section-4.1.3.
+
+    Raises:
+      UnsupportedAlgorithm: if the algorihtm is not defined at
+      https://tools.ietf.org/html/rfc7518#section-3.1 or if jwk is not Rsa or
+      Ecdsa key.
+    """
+    self.verifier = jws.JwsMacVerify(jwk_set)
+    self.issuer = issuer
+    self.subject = subject
+    self.audiences = audiences
+
+  def verify(self, token):
+    """Verifies whether the token was authenticated with mac and whether the payload's claims are valid.
+
+    Args:
+      token: string, the JWS compact serialization token as defined at
+        https://tools.ietf.org/html/rfc7515#section-7.1.
+
+    Returns:
+      True if the token was verified, false if not.
+    """
+    if not self.verifier.verify(token):
+      return False
+    payload = json.loads(jwsutil.urlsafe_b64decode(token.split(".")[1]))
+    return _verify_claims(payload, self.issuer, self.subject, self.audiences)
+
+
+class JwtMacAuthenticator(object):
+  """Jws Mac Authenticator that authenticates jwt token."""
+
+  def __init__(self, jwk_set):
+    """Constructor for JwtMacAuthenticator.
+
+    Args:
+      jwk_set: a JwkSet.
+
+    Raises:
+      UnsupportedAlgorithm: if the key.algorihtm is not defined at
+      https://tools.ietf.org/html/rfc7518#section-3.1 or if jwk is not symmetric
+      Hmac key.
+    """
+    self.authenticator = jws.JwsMacAuthenticator(jwk_set)
+
+  def authenticate(self, header, payload):
+    """Computes the authenticated jwt as defined at rfc7515#section-7.1.
+
+    Args:
+      header: bytes, the header to be authenticated.
+      payload: bytes, the payload to be authenticated.
+
+    Returns:
+      base64url(header) || '.' || base64url(payload) || '.' ||
+      base64url(mac), where the mac is computed over
+      base64url(utf8(header)) || '.' || base64url(payload).
+    """
+    return self.authenticator.authenticate(header, payload)
+
+
 def _get_unix_timestamp():
   return calendar.timegm(datetime.datetime.utcnow().utctimetuple())
 
