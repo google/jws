@@ -160,6 +160,34 @@ class JwsTest(unittest.TestCase):
       for modified_token in test_util.modify_token(signed_token):
         self.assertFalse(verifier.verify(modified_token))
 
+  def test_jws_rsa_from_pem_key(self):
+    # Sign the token
+    rsa_priv_key = CleartextJwkSetReader.from_pem(
+        test_vector.test_pem_rsa_2048_priv_key, 'RS256')
+    signer = jws.JwsPublicKeySign(rsa_priv_key)
+    signed_token = signer.sign(test_vector.test_header_rsa,
+                               test_vector.test_payload)
+
+    # Verify the token
+    rsa_pub_key = CleartextJwkSetReader.from_pem(
+        test_vector.test_pem_rsa_2048_pub_key, 'RS256')
+    verifier = jws.JwsPublicKeyVerify(rsa_pub_key)
+    self.assertTrue(verifier.verify(signed_token))
+
+  def test_jws_ec_from_pem_key(self):
+    # Sign the token
+    rsa_priv_key = CleartextJwkSetReader.from_pem(
+        test_vector.test_pem_ec_p256_priv_key, 'ES256')
+    signer = jws.JwsPublicKeySign(rsa_priv_key)
+    signed_token = signer.sign(test_vector.test_header_ecdsa,
+                               test_vector.test_payload)
+
+    # Verify the token
+    rsa_pub_key = CleartextJwkSetReader.from_pem(
+        test_vector.test_pem_ec_p256_pub_key, 'ES256')
+    verifier = jws.JwsPublicKeyVerify(rsa_pub_key)
+    self.assertTrue(verifier.verify(signed_token))
+
 
 if __name__ == '__main__':
   unittest.main()
