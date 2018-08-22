@@ -33,6 +33,8 @@ from cryptography import exceptions
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
 import jwsutil
 from jwk import Jwk
@@ -41,6 +43,52 @@ from jwk import JwkSet
 
 class CleartextJwkSetReader(object):
   """Static methods for reading cleartext keysets."""
+
+  @classmethod
+  def from_pem(cls, pem_key, algorithm):
+    """Parses PEM key and transformat it to Jwk key.
+
+    As PEM key doesn't specify the full algorithm to use (e.g. a RSA key doesn't
+    specify which hash function should be used), the caller has to specify what
+    algorithm that it would use the key for.
+    Args:
+      pem_key: bytes, RSA or ECDSA key in PEM format.
+      algorithm: string, RSA or ECDSA algorithm as defined at
+        https://tools.ietf.org/html/rfc7518#section-3.1.
+
+    Raises:
+      UnsupportedAlgorithm: if the algorithm is not supported or pem_key is
+      error.
+    """
+    if algorithm not in [
+        "RS256", "RS384", "RS512", "ES256", "ES384", "ES512", "PS256", "PS384",
+        "PS512"
+    ]:
+      raise exceptions.UnsupportedAlgorithm(
+          "Unknown algorithm: %s" % (algorithm))
+    key_type = ""
+    key = ""
+    # Try to parse it as private key.
+    try:
+      key = load_pem_private_key(
+          pem_key, None, backend=backends.default_backend())
+    except (ValueError, TypeError, exceptions.UnsupportedAlgorithm) as ignored:
+      # If not succeeded, try to parse it as public key.
+      try:
+        key = load_pem_public_key(pem_key, backend=backends.default_backend())
+      except (ValueError, TypeError, exceptions.UnsupportedAlgorithm) as e:
+        raise exceptions.UnsupportedAlgorithm("Pem key parsing error: %s" % (e))
+    if isinstance(key, rsa.RSAPrivateKey):
+      return JwkSet([Jwk("RSA", "", algorithm, None, key, key.public_key())])
+    elif isinstance(key, rsa.RSAPublicKey):
+      return JwkSet([Jwk("RSA", "", algorithm, None, None, key)])
+    elif isinstance(key, ec.EllipticCurvePrivateKey):
+      return JwkSet([Jwk("EC", "", algorithm, None, key, key.public_key)])
+    elif isinstance(key, ec.EllipticCurvePublicKey):
+      return JwkSet([Jwk("EC", "", algorithm, None, None, key)])
+    else:
+      raise exceptions.UnsupportedAlgorithm(
+          "Unknown supported key pem: %s" % (e))
 
   @classmethod
   def from_json(cls, json_keys):
