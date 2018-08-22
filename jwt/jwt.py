@@ -43,7 +43,12 @@ import calendar
 class JwtPublicKeyVerify(object):
   """JWT Public Key Verifier which verifies both the signature and claims."""
 
-  def __init__(self, jwk_set, issuer=None, subject=None, audiences=None):
+  def __init__(self,
+               jwk_set,
+               issuer=None,
+               subject=None,
+               audiences=None,
+               clock_skew_tolerance=0):
     """Constructor for JwtPublicKeyVerify.
 
     Args:
@@ -54,6 +59,7 @@ class JwtPublicKeyVerify(object):
         https://tools.ietf.org/html/rfc7519#section-4.1.2.
       audiences: list of string, the audiences claim as defined at
         https://tools.ietf.org/html/rfc7519#section-4.1.3.
+      clock_skew_tolerance: integer, the clock skew that the verifier tolerates.
 
     Raises:
       UnsupportedAlgorithm: if the algorihtm is not defined at
@@ -64,6 +70,7 @@ class JwtPublicKeyVerify(object):
     self.issuer = issuer
     self.subject = subject
     self.audiences = audiences
+    self.clock_skew_tolerance = clock_skew_tolerance
 
   def verify(self, token):
     """Verifies whether the token is signed with the corresponding private key and whether the payload's claims are valid.
@@ -78,7 +85,8 @@ class JwtPublicKeyVerify(object):
     if not self.verifier.verify(token):
       return False
     payload = json.loads(jwsutil.urlsafe_b64decode(token.split(".")[1]))
-    return _verify_claims(payload, self.issuer, self.subject, self.audiences)
+    return _verify_claims(payload, self.issuer, self.subject, self.audiences,
+                          self.clock_skew_tolerance)
 
 
 class JwtPublicKeySign(object):
@@ -116,7 +124,12 @@ class JwtPublicKeySign(object):
 class JwtMacVerify(object):
   """Jwt Mac Verifier that verifies both message authentication code and claims."""
 
-  def __init__(self, jwk_set, issuer=None, subject=None, audiences=None):
+  def __init__(self,
+               jwk_set,
+               issuer=None,
+               subject=None,
+               audiences=None,
+               clock_skew_tolerance=0):
     """Constructor for JwtMacVerify.
 
     Args:
@@ -127,6 +140,7 @@ class JwtMacVerify(object):
         https://tools.ietf.org/html/rfc7519#section-4.1.2.
       audiences: list of string, the audiences claim as defined at
         https://tools.ietf.org/html/rfc7519#section-4.1.3.
+      clock_skew_tolerance: integer, the clock skew that the verifier tolerates.
 
     Raises:
       UnsupportedAlgorithm: if the algorihtm is not defined at
@@ -137,6 +151,7 @@ class JwtMacVerify(object):
     self.issuer = issuer
     self.subject = subject
     self.audiences = audiences
+    self.clock_skew_tolerance = clock_skew_tolerance
 
   def verify(self, token):
     """Verifies whether the token was authenticated with mac and whether the payload's claims are valid.
@@ -151,7 +166,8 @@ class JwtMacVerify(object):
     if not self.verifier.verify(token):
       return False
     payload = json.loads(jwsutil.urlsafe_b64decode(token.split(".")[1]))
-    return _verify_claims(payload, self.issuer, self.subject, self.audiences)
+    return _verify_claims(payload, self.issuer, self.subject, self.audiences,
+                          self.clock_skew_tolerance)
 
 
 class JwtMacAuthenticator(object):
@@ -189,7 +205,7 @@ def _get_unix_timestamp():
   return calendar.timegm(datetime.datetime.utcnow().utctimetuple())
 
 
-def _verify_claims(payload, issuer, subject, audiences):
+def _verify_claims(payload, issuer, subject, audiences, clock_skew_tolerance):
   if issuer is not None:
     if payload.get("iss", None) is None:
       return False
@@ -211,11 +227,11 @@ def _verify_claims(payload, issuer, subject, audiences):
   now = _get_unix_timestamp()
   if payload.get("exp", None) is not None and isinstance(
       payload["exp"], six.integer_types):
-    if now > int(payload["exp"]):
+    if now > int(payload["exp"]) + clock_skew_tolerance:
       return False
   if payload.get("nbf", None) is not None and isinstance(
       payload["nbf"], six.integer_types):
-    if now < int(payload["nbf"]):
+    if now < int(payload["nbf"]) - clock_skew_tolerance:
       return False
 
   return True
