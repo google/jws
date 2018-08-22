@@ -33,7 +33,8 @@ from jws import jwsutil
 
 class JwtPublicKeyVerify(object):
   """JWT Public Key Verifier which verifies both the signature and claims."""
-  def __init__(self, jwk_set, issuer=None, subject=None, audiences = None):
+
+  def __init__(self, jwk_set, issuer=None, subject=None, audiences=None):
     self.verifier = jws.JwsPublicKeyVerify(jwk_set)
     self.issuer = issuer
     self.subject = subject
@@ -44,6 +45,7 @@ class JwtPublicKeyVerify(object):
       return False
     payload = json.loads(jwsutil.urlsafe_b64decode(token.split(".")[1]))
     return _verify_claims(payload, self.issuer, self.subject, self.audiences)
+
 
 def _verify_claims(payload, issuer, subject, audiences):
   if issuer is not None:
@@ -62,4 +64,3 @@ def _verify_claims(payload, issuer, subject, audiences):
     if not any(payload["aud"] == s for s in audiences):
       return False
   return True
- 

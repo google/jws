@@ -22,13 +22,16 @@ from jwt import jwt
 from jws import jws
 from jws.cleartext_jwk_set_reader import CleartextJwkSetReader
 
+
 # TODO(quannguyen): add more tests.
 class JwtTest(unittest.TestCase):
+
   def test_jwt_claims(self):
     # Sign
     priv_key = CleartextJwkSetReader.from_json(test_vector.json_rsa_priv_key)
     signer = jws.JwsPublicKeySign(priv_key)
-    signed_token = signer.sign(test_vector.test_header_rsa, test_vector.test_payload)
+    signed_token = signer.sign(test_vector.test_header_rsa,
+                               test_vector.test_payload)
 
     # Verify
     pub_key = CleartextJwkSetReader.from_json(test_vector.json_rsa_pub_key)
@@ -36,7 +39,8 @@ class JwtTest(unittest.TestCase):
     verifier = jwt.JwtPublicKeyVerify(pub_key)
     self.assertTrue(verifier.verify(signed_token))
     # Correct issuer, subject and audience.
-    verifier = jwt.JwtPublicKeyVerify(pub_key, 'issuer1', 'subject1', ['aud1', 'aud2'])
+    verifier = jwt.JwtPublicKeyVerify(pub_key, 'issuer1', 'subject1',
+                                      ['aud1', 'aud2'])
     self.assertTrue(verifier.verify(signed_token))
     # Incorrect issuer.
     verifier = jwt.JwtPublicKeyVerify(pub_key, 'issuer0', 'subject1', ['aud1'])
@@ -44,9 +48,10 @@ class JwtTest(unittest.TestCase):
     # Incorrect subject.
     verifier = jwt.JwtPublicKeyVerify(pub_key, 'issuer1', 'subject0', ['aud1'])
     self.assertFalse(verifier.verify(signed_token))
-     # Incorrect audience.
+    # Incorrect audience.
     verifier = jwt.JwtPublicKeyVerify(pub_key, 'issuer1', 'subject1', ['aud'])
     self.assertFalse(verifier.verify(signed_token))
-     
+
+
 if __name__ == '__main__':
   unittest.main()

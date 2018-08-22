@@ -16,7 +16,6 @@ __author__ = 'quannguyen@google.com (Quan Nguyen)'
 
 import json
 
-
 # Test vector from https://tools.ietf.org/html/rfc7515#appendix-A.2.
 json_rsa_priv_key = r"""
   {
@@ -129,7 +128,13 @@ test_header_hmac = json.dumps(
         'alg': 'HS256'
     }, separators=(',', ':'))
 
-test_payload = json.dumps({'aud':'aud1','sub':'subject1','iss': 'issuer1',}, separators=(',', ':'))
+test_payload = json.dumps(
+    {
+        'aud': 'aud1',
+        'sub': 'subject1',
+        'iss': 'issuer1',
+    },
+    separators=(',', ':'))
 
 test_header_ecdsa_kid1 = json.dumps(
     {
@@ -165,5 +170,3 @@ test_json_ecdsa_pub_key_kid1 = r"""
     "kid":"kid1",
     "alg":"ES256"
   }"""
-
-

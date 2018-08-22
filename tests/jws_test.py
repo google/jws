@@ -26,6 +26,7 @@ from jws.cleartext_jwk_set_reader import CleartextJwkSetReader
 
 # TODO(quannguyen): Add more tests.
 class JwsTest(unittest.TestCase):
+
   def test_jws_rsa_verifier_with_rfc(self):
     # Set up phase: parse the key and initialize the verifier.
     keys = CleartextJwkSetReader.from_json(test_vector.json_rsa_pub_key)
@@ -86,7 +87,8 @@ class JwsTest(unittest.TestCase):
     # Sign
     priv_key = CleartextJwkSetReader.from_json(test_vector.es256_ecdsa_priv_key)
     signer = jws.JwsPublicKeySign(priv_key)
-    signed_token = signer.sign(test_vector.test_header_ecdsa, test_vector.test_payload)
+    signed_token = signer.sign(test_vector.test_header_ecdsa,
+                               test_vector.test_payload)
 
     # Verify
     pub_key = CleartextJwkSetReader.from_json(test_vector.es256_ecdsa_pub_key)
@@ -119,7 +121,8 @@ class JwsTest(unittest.TestCase):
                                     test_vector.test_payload)
 
     # Verify
-    pub_key = CleartextJwkSetReader.from_json(test_vector.test_json_ecdsa_pub_key_kid1)
+    pub_key = CleartextJwkSetReader.from_json(
+        test_vector.test_json_ecdsa_pub_key_kid1)
     verifier = jws.JwsPublicKeyVerify(pub_key)
     self.assertTrue(verifier.verify(signed_token_kid1))
     # The signature is valid but the kids don't match.
