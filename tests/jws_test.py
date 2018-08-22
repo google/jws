@@ -22,6 +22,7 @@ from jws import jwsutil
 from jws import jws
 import test_vector
 from jws.cleartext_jwk_set_reader import CleartextJwkSetReader
+import test_util
 
 
 # TODO(quannguyen): Add more tests.
@@ -34,7 +35,7 @@ class JwsTest(unittest.TestCase):
 
     # Use phase
     self.assertTrue(verifier.verify(test_vector.rsa_token))
-    for modified_token in _modify_token(test_vector.rsa_token):
+    for modified_token in test_util.modify_token(test_vector.rsa_token):
       self.assertFalse(verifier.verify(modified_token))
 
   def test_jws_rsa_signer_and_verifier(self):
@@ -60,7 +61,7 @@ class JwsTest(unittest.TestCase):
       pub_key = CleartextJwkSetReader.from_json(json_pub_key)
       verifier = jws.JwsPublicKeyVerify(pub_key)
       self.assertTrue(verifier.verify(signed_token))
-      for modified_token in _modify_token(signed_token):
+      for modified_token in test_util.modify_token(signed_token):
         self.assertFalse(verifier.verify(modified_token))
 
   def test_jws_ecdsa_verifier_with_rfc_es256(self):
@@ -70,7 +71,7 @@ class JwsTest(unittest.TestCase):
 
     # Use phase
     self.assertTrue(verifier.verify(test_vector.es256_ecdsa_token))
-    for modified_token in _modify_token(test_vector.es256_ecdsa_token):
+    for modified_token in test_util.modify_token(test_vector.es256_ecdsa_token):
       self.assertFalse(verifier.verify(modified_token))
 
   def test_jws_ecdsa_verifier_with_rfc_es512(self):
@@ -80,7 +81,7 @@ class JwsTest(unittest.TestCase):
 
     # Use phase
     self.assertTrue(verifier.verify(test_vector.es512_ecdsa_token))
-    for modified_token in _modify_token(test_vector.es512_ecdsa_token):
+    for modified_token in test_util.modify_token(test_vector.es512_ecdsa_token):
       self.assertFalse(verifier.verify(modified_token))
 
   def test_jws_ecdsa_signer_verifier_es256(self):
@@ -94,7 +95,7 @@ class JwsTest(unittest.TestCase):
     pub_key = CleartextJwkSetReader.from_json(test_vector.es256_ecdsa_pub_key)
     verifier = jws.JwsPublicKeyVerify(pub_key)
     self.assertTrue(verifier.verify(signed_token))
-    for modified_token in _modify_token(signed_token):
+    for modified_token in test_util.modify_token(signed_token):
       self.assertFalse(verifier.verify(modified_token))
 
   def test_jws_verifier_with_multiple_keys(self):
@@ -105,9 +106,9 @@ class JwsTest(unittest.TestCase):
     # Use phase
     self.assertTrue(verifier.verify(test_vector.rsa_token))
     self.assertTrue(verifier.verify(test_vector.es256_ecdsa_token))
-    for modified_token in _modify_token(test_vector.rsa_token):
+    for modified_token in test_util.modify_token(test_vector.rsa_token):
       self.assertFalse(verifier.verify(modified_token))
-    for modified_token in _modify_token(test_vector.es256_ecdsa_token):
+    for modified_token in test_util.modify_token(test_vector.es256_ecdsa_token):
       self.assertFalse(verifier.verify(modified_token))
 
   def test_jws_verifier_with_kid(self):
@@ -135,7 +136,7 @@ class JwsTest(unittest.TestCase):
 
     # Use phase
     self.assertTrue(verifier.verify(test_vector.hmac_token))
-    for modified_token in _modify_token(test_vector.hmac_token):
+    for modified_token in test_util.modify_token(test_vector.hmac_token):
       self.assertFalse(verifier.verify(modified_token))
 
   def test_jws_mac_authenticator_and_verifier(self):
@@ -156,32 +157,8 @@ class JwsTest(unittest.TestCase):
       # Verify
       verifier = jws.JwsMacVerify(mac_key)
       self.assertTrue(verifier.verify(signed_token))
-      for modified_token in _modify_token(signed_token):
+      for modified_token in test_util.modify_token(signed_token):
         self.assertFalse(verifier.verify(modified_token))
-
-
-def _modify_token(token):
-  parts = token.split('.')
-  assert (len(parts) == 3)
-  for i in range(len(parts)):
-    modified_parts = parts[:]
-    decoded_part = jwsutil.urlsafe_b64decode(modified_parts[i])
-    for s in _modify_str(decoded_part):
-      modified_parts[i] = jwsutil.urlsafe_b64encode(s)
-      yield (modified_parts[0] + b'.' + modified_parts[1] + b'.' +
-             modified_parts[2])
-
-
-def _modify_str(s):
-  # Modify each bit of string.
-  for i in range(len(s)):
-    c = s[i]
-    for j in range(8):
-      yield (s[:i] + chr(ord(c) ^ (1 << j)) + s[i:])
-
-  # Truncate string.
-  for i in range(len(s)):
-    yield s[:i]
 
 
 if __name__ == '__main__':

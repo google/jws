@@ -20,13 +20,16 @@ import test_vector
 import unittest
 from jwt import jwt
 from jws import jws
+import test_util
 from jws.cleartext_jwk_set_reader import CleartextJwkSetReader
+import calendar
+import datetime
 
 
 # TODO(quannguyen): add more tests.
 class JwtTest(unittest.TestCase):
 
-  def test_jwt_claims(self):
+  def test_jwt_claims_issuer_subject_audiences(self):
     # Sign
     priv_key = CleartextJwkSetReader.from_json(test_vector.json_rsa_priv_key)
     signer = jws.JwsPublicKeySign(priv_key)
@@ -42,6 +45,10 @@ class JwtTest(unittest.TestCase):
     verifier = jwt.JwtPublicKeyVerify(pub_key, 'issuer1', 'subject1',
                                       ['aud1', 'aud2'])
     self.assertTrue(verifier.verify(signed_token))
+    # Modify token.
+    for modified_token in test_util.modify_token(signed_token):
+      self.assertFalse(verifier.verify(modified_token))
+
     # Incorrect issuer.
     verifier = jwt.JwtPublicKeyVerify(pub_key, 'issuer0', 'subject1', ['aud1'])
     self.assertFalse(verifier.verify(signed_token))
@@ -51,6 +58,55 @@ class JwtTest(unittest.TestCase):
     # Incorrect audience.
     verifier = jwt.JwtPublicKeyVerify(pub_key, 'issuer1', 'subject1', ['aud'])
     self.assertFalse(verifier.verify(signed_token))
+
+  def test_jwt_claims_exp_nbf(self):
+    # Sign
+    priv_key = CleartextJwkSetReader.from_json(test_vector.json_rsa_priv_key)
+    signer = jws.JwsPublicKeySign(priv_key)
+    # Valid exp time.
+    payload = json.loads(test_vector.test_payload)
+    payload['exp'] = _get_unix_timestamp() + 100
+    payload = json.dumps(payload)
+    signed_token = signer.sign(test_vector.test_header_rsa, payload)
+
+    # Verify
+    pub_key = CleartextJwkSetReader.from_json(test_vector.json_rsa_pub_key)
+    verifier = jwt.JwtPublicKeyVerify(pub_key)
+    self.assertTrue(verifier.verify(signed_token))
+
+    # Invalid exp time.
+    payload = json.loads(test_vector.test_payload)
+
+    payload['exp'] = _get_unix_timestamp() - 100
+    payload = json.dumps(payload)
+    signed_token = signer.sign(test_vector.test_header_rsa, payload)
+
+    # Verify
+    self.assertFalse(verifier.verify(signed_token))
+
+    # Valid nbf time.
+    payload = json.loads(test_vector.test_payload)
+
+    payload['nbf'] = _get_unix_timestamp() - 100
+    payload = json.dumps(payload)
+    signed_token = signer.sign(test_vector.test_header_rsa, payload)
+
+    # Verify
+    self.assertTrue(verifier.verify(signed_token))
+
+    # Invalid nbf time.
+    payload = json.loads(test_vector.test_payload)
+
+    payload['nbf'] = _get_unix_timestamp() + 100
+    payload = json.dumps(payload)
+    signed_token = signer.sign(test_vector.test_header_rsa, payload)
+
+    # Verify
+    self.assertFalse(verifier.verify(signed_token))
+
+
+def _get_unix_timestamp():
+  return calendar.timegm(datetime.datetime.utcnow().utctimetuple())
 
 
 if __name__ == '__main__':
