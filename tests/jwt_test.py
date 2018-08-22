@@ -82,6 +82,11 @@ class JwtTest(unittest.TestCase):
 
     # Verify
     self.assertFalse(verifier.verify(signed_token))
+    # Add clock_skew_tolerance
+    verifier = jwt.JwtPublicKeyVerify(pub_key, None, None, None, 200)
+    self.assertTrue(verifier.verify(signed_token))
+
+    verifier = jwt.JwtPublicKeyVerify(pub_key)
 
     # Valid nbf time.
     payload = json.loads(test_vector.test_payload)
@@ -102,6 +107,9 @@ class JwtTest(unittest.TestCase):
 
     # Verify
     self.assertFalse(verifier.verify(signed_token))
+    # Add clock_skew_tolerance
+    verifier = jwt.JwtPublicKeyVerify(pub_key, None, None, None, 200)
+    self.assertTrue(verifier.verify(signed_token))
 
   def test_jwt_mac_verifier_with_issuer_subject_audiences(self):
     # Authenticate
@@ -156,6 +164,11 @@ class JwtTest(unittest.TestCase):
 
     # Verify
     self.assertFalse(verifier.verify(signed_token))
+    # Add clock_skew_tolerance
+    verifier = jwt.JwtMacVerify(key, None, None, None, 200)
+    self.assertTrue(verifier.verify(signed_token))
+
+    verifier = jwt.JwtMacVerify(key)
 
     # Valid nbf time.
     payload = json.loads(test_vector.test_payload)
@@ -178,6 +191,9 @@ class JwtTest(unittest.TestCase):
 
     # Verify
     self.assertFalse(verifier.verify(signed_token))
+    # Add clock_skew_tolerance
+    verifier = jwt.JwtMacVerify(key, None, None, None, 200)
+    self.assertTrue(verifier.verify(signed_token))
 
 
 def _get_unix_timestamp():
