@@ -121,8 +121,7 @@ To test jws: `sudo python setup.py test`
 ## Usage
 
 ```
-from jws import jws
-from jws.cleartext_jwk_set_reader import CleartextJwkSetReader
+import jws
 
 es512_ecdsa_token = 'eyJhbGciOiJFUzUxMiJ9.UGF5bG9hZA.AdwMgeerwtHoh-l192l60hp9wAHZFVJbLfD_UxMi70cwnZOYaRI1bKPWROc-mZZqwqT2SI-KGDKB34XO0aw_7XdtAG8GaSwFKdCAPZgoXD2YBJZCPEX3xKpRwcdOO8KpEHwJjyqOgzDO7iKvU8vcnwNrmxYbSW9ERBXukOXolLzeO_Jn'
 es512_ecdsa_pub_key = r"""
@@ -134,7 +133,7 @@ es512_ecdsa_pub_key = r"""
       "alg":"ES512"
     }"""
 # Set up phase: parse the key and initialize the verifier.
-key = CleartextJwkSetReader.from_json(es512_ecdsa_pub_key)
+key = jws.CleartextJwkSetReader.from_json(es512_ecdsa_pub_key)
 verifier = jws.JwsPublicKeyVerify(key)
 
 # Verify phase

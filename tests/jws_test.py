@@ -19,9 +19,8 @@ import json
 import unittest
 
 from jws import jwsutil
-from jws import jws
+import jws
 import test_vector
-from jws.cleartext_jwk_set_reader import CleartextJwkSetReader
 import test_util
 
 
@@ -30,7 +29,7 @@ class JwsTest(unittest.TestCase):
 
   def test_jws_rsa_verifier_with_rfc(self):
     # Set up phase: parse the key and initialize the verifier.
-    keys = CleartextJwkSetReader.from_json(test_vector.json_rsa_pub_key)
+    keys = jws.CleartextJwkSetReader.from_json(test_vector.json_rsa_pub_key)
     verifier = jws.JwsPublicKeyVerify(keys)
 
     # Use phase
@@ -53,12 +52,12 @@ class JwsTest(unittest.TestCase):
       json_header_rsa = json.dumps(json_header_rsa)
 
       # Sign
-      priv_key = CleartextJwkSetReader.from_json(json_priv_key)
+      priv_key = jws.CleartextJwkSetReader.from_json(json_priv_key)
       signer = jws.JwsPublicKeySign(priv_key)
       signed_token = signer.sign(json_header_rsa, test_vector.test_payload)
 
       # Verify
-      pub_key = CleartextJwkSetReader.from_json(json_pub_key)
+      pub_key = jws.CleartextJwkSetReader.from_json(json_pub_key)
       verifier = jws.JwsPublicKeyVerify(pub_key)
       self.assertTrue(verifier.verify(signed_token))
       for modified_token in test_util.modify_token(signed_token):
@@ -66,7 +65,7 @@ class JwsTest(unittest.TestCase):
 
   def test_jws_ecdsa_verifier_with_rfc_es256(self):
     # Set up phase: parse the key and initialize the verifier.
-    key = CleartextJwkSetReader.from_json(test_vector.es256_ecdsa_pub_key)
+    key = jws.CleartextJwkSetReader.from_json(test_vector.es256_ecdsa_pub_key)
     verifier = jws.JwsPublicKeyVerify(key)
 
     # Use phase
@@ -76,7 +75,7 @@ class JwsTest(unittest.TestCase):
 
   def test_jws_ecdsa_verifier_with_rfc_es512(self):
     # Set up phase: parse the key and initialize the verifier.
-    key = CleartextJwkSetReader.from_json(test_vector.es512_ecdsa_pub_key)
+    key = jws.CleartextJwkSetReader.from_json(test_vector.es512_ecdsa_pub_key)
     verifier = jws.JwsPublicKeyVerify(key)
 
     # Use phase
@@ -86,13 +85,15 @@ class JwsTest(unittest.TestCase):
 
   def test_jws_ecdsa_signer_verifier_es256(self):
     # Sign
-    priv_key = CleartextJwkSetReader.from_json(test_vector.es256_ecdsa_priv_key)
+    priv_key = jws.CleartextJwkSetReader.from_json(
+        test_vector.es256_ecdsa_priv_key)
     signer = jws.JwsPublicKeySign(priv_key)
     signed_token = signer.sign(test_vector.test_header_ecdsa,
                                test_vector.test_payload)
 
     # Verify
-    pub_key = CleartextJwkSetReader.from_json(test_vector.es256_ecdsa_pub_key)
+    pub_key = jws.CleartextJwkSetReader.from_json(
+        test_vector.es256_ecdsa_pub_key)
     verifier = jws.JwsPublicKeyVerify(pub_key)
     self.assertTrue(verifier.verify(signed_token))
     for modified_token in test_util.modify_token(signed_token):
@@ -100,7 +101,7 @@ class JwsTest(unittest.TestCase):
 
   def test_jws_verifier_with_multiple_keys(self):
     # Set up phase: parse the keys and initialize the verifier.
-    keys = CleartextJwkSetReader.from_json(test_vector.json_pub_keys)
+    keys = jws.CleartextJwkSetReader.from_json(test_vector.json_pub_keys)
     verifier = jws.JwsPublicKeyVerify(keys)
 
     # Use phase
@@ -113,7 +114,7 @@ class JwsTest(unittest.TestCase):
 
   def test_jws_verifier_with_kid(self):
     # Sign
-    priv_key = CleartextJwkSetReader.from_json(
+    priv_key = jws.CleartextJwkSetReader.from_json(
         test_vector.test_json_ecdsa_priv_key_kid1)
     signer = jws.JwsPublicKeySign(priv_key)
     signed_token_kid1 = signer.sign(test_vector.test_header_ecdsa_kid1,
@@ -122,7 +123,7 @@ class JwsTest(unittest.TestCase):
                                     test_vector.test_payload)
 
     # Verify
-    pub_key = CleartextJwkSetReader.from_json(
+    pub_key = jws.CleartextJwkSetReader.from_json(
         test_vector.test_json_ecdsa_pub_key_kid1)
     verifier = jws.JwsPublicKeyVerify(pub_key)
     self.assertTrue(verifier.verify(signed_token_kid1))
@@ -131,7 +132,7 @@ class JwsTest(unittest.TestCase):
 
   def test_jws_mac_verifier_with_rfc(self):
     # Set up phase: parse the key and initialize the JwsMacVerify
-    key = CleartextJwkSetReader.from_json(test_vector.json_hmac_key)
+    key = jws.CleartextJwkSetReader.from_json(test_vector.json_hmac_key)
     verifier = jws.JwsMacVerify(key)
 
     # Use phase
@@ -150,7 +151,7 @@ class JwsTest(unittest.TestCase):
       json_header_hmac = json.dumps(json_header_hmac)
 
       # Authenticator
-      mac_key = CleartextJwkSetReader.from_json(json_hmac_key)
+      mac_key = jws.CleartextJwkSetReader.from_json(json_hmac_key)
       authenticator = jws.JwsMacAuthenticator(mac_key)
       signed_token = authenticator.authenticate(json_header_hmac,
                                                 test_vector.test_payload)
@@ -162,28 +163,28 @@ class JwsTest(unittest.TestCase):
 
   def test_jws_rsa_from_pem_key(self):
     # Sign the token
-    rsa_priv_key = CleartextJwkSetReader.from_pem(
+    rsa_priv_key = jws.CleartextJwkSetReader.from_pem(
         test_vector.test_pem_rsa_2048_priv_key, 'RS256')
     signer = jws.JwsPublicKeySign(rsa_priv_key)
     signed_token = signer.sign(test_vector.test_header_rsa,
                                test_vector.test_payload)
 
     # Verify the token
-    rsa_pub_key = CleartextJwkSetReader.from_pem(
+    rsa_pub_key = jws.CleartextJwkSetReader.from_pem(
         test_vector.test_pem_rsa_2048_pub_key, 'RS256')
     verifier = jws.JwsPublicKeyVerify(rsa_pub_key)
     self.assertTrue(verifier.verify(signed_token))
 
   def test_jws_ec_from_pem_key(self):
     # Sign the token
-    rsa_priv_key = CleartextJwkSetReader.from_pem(
+    rsa_priv_key = jws.CleartextJwkSetReader.from_pem(
         test_vector.test_pem_ec_p256_priv_key, 'ES256')
     signer = jws.JwsPublicKeySign(rsa_priv_key)
     signed_token = signer.sign(test_vector.test_header_ecdsa,
                                test_vector.test_payload)
 
     # Verify the token
-    rsa_pub_key = CleartextJwkSetReader.from_pem(
+    rsa_pub_key = jws.CleartextJwkSetReader.from_pem(
         test_vector.test_pem_ec_p256_pub_key, 'ES256')
     verifier = jws.JwsPublicKeyVerify(rsa_pub_key)
     self.assertTrue(verifier.verify(signed_token))
