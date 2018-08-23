@@ -31,7 +31,8 @@ design options. Therefore, we will only implement a safe subset of it. JWS
 Compact Serialization (https://tools.ietf.org/html/rfc7515#section-7.1) while
 not ideal, is simple and safe if correctly implemented. We'll harden the API to
 make it difficult to misuse.
-WARNING: This package only verifies signature without verifying claims as
+
+WARNING: Jws only verifies signature without verifying claims as
 defined at https://tools.ietf.org/html/rfc7519#section-4.1. If you want to
 verify both signature and claims, please use jwt.
 """

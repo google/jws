@@ -27,4 +27,6 @@ limitations under the License.
 """Init file for jws."""
 from .jws import (JwsPublicKeySign, JwsPublicKeyVerify, JwsMacVerify,
                   JwsMacAuthenticator)
+from .jwt import (JwtPublicKeySign, JwtPublicKeyVerify, JwtMacVerify,
+                  JwtMacAuthenticator)
 from .cleartext_jwk_set_reader import CleartextJwkSetReader

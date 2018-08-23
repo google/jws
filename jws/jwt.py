@@ -26,7 +26,7 @@ limitations under the License.
 """
 """JSON Web Token (JWT) in compact serialization format.
 
-This package uses jws underneath. The difference between jws and jwt is that
+Jwt uses jws underneath. The difference between jws and jwt is that
 jws only verifies the signature while jwt verifies both the signature and
 claims as defined at https://tools.ietf.org/html/rfc7519#section-4.1.
 """
