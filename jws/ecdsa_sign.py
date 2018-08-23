@@ -32,7 +32,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 import six
 
-from public_key_sign import PublicKeySign
+from .public_key_sign import PublicKeySign
 
 
 class EcdsaSign(PublicKeySign):

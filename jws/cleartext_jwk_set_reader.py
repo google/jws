@@ -36,9 +36,9 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
-import jwsutil
-from jwk import Jwk
-from jwk import JwkSet
+from . import jwsutil
+from .jwk import Jwk
+from .jwk import JwkSet
 
 
 class CleartextJwkSetReader(object):

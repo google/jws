@@ -45,12 +45,12 @@ from cryptography import exceptions
 from cryptography.hazmat.primitives.asymmetric import utils
 import six
 
-import jwsutil
-from ecdsa_sign import EcdsaSign
-from ecdsa_verify import EcdsaVerify
-from hmac import Hmac
-from rsa_sign import RsaSign
-from rsa_verify import RsaVerify
+from . import jwsutil
+from .ecdsa_sign import EcdsaSign
+from .ecdsa_verify import EcdsaVerify
+from .hmac import Hmac
+from .rsa_sign import RsaSign
+from .rsa_verify import RsaVerify
 
 
 class JwsPublicKeyVerify(object):

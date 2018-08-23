@@ -19,7 +19,7 @@ import json
 import test_vector
 import unittest
 import jws
-import test_util
+from . import test_util
 import calendar
 import datetime
 
