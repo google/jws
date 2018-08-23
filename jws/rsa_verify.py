@@ -21,8 +21,8 @@ __author__ = "quannguyen@google.com (Quan Nguyen)"
 from cryptography.hazmat.primitives.asymmetric import rsa
 import six
 
-import jwsutil
-from public_key_verify import PublicKeyVerify
+from . import jwsutil
+from .public_key_verify import PublicKeyVerify
 
 
 class RsaVerify(PublicKeyVerify):

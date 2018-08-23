@@ -20,8 +20,8 @@ import unittest
 
 from jws import jwsutil
 import jws
-import test_vector
-import test_util
+from . import test_vector
+from . import test_util
 
 
 # TODO(quannguyen): Add more tests.

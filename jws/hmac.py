@@ -33,7 +33,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import hmac
 import six
 
-from mac import Mac
+from .mac import Mac
 
 
 class Hmac(Mac):

@@ -34,7 +34,7 @@ claims as defined at https://tools.ietf.org/html/rfc7519#section-4.1.
 __author__ = "quannguyen@google.com (Quan Nguyen)"
 import json
 import jws
-from jws import jwsutil
+from . import jwsutil
 import six
 import datetime
 import calendar
