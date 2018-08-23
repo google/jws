@@ -33,7 +33,7 @@ claims as defined at https://tools.ietf.org/html/rfc7519#section-4.1.
 
 __author__ = "quannguyen@google.com (Quan Nguyen)"
 import json
-from jws import jws
+import jws
 from jws import jwsutil
 import six
 import datetime

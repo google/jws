@@ -18,9 +18,9 @@ __author__ = 'quannguyen@google.com (Quan Nguyen)'
 import json
 import test_vector
 import unittest
-from jwt import jwt
+import jwt
+import jws
 import test_util
-from jws.cleartext_jwk_set_reader import CleartextJwkSetReader
 import calendar
 import datetime
 
@@ -30,13 +30,14 @@ class JwtTest(unittest.TestCase):
 
   def test_jwt_public_key_verifier_with_issuer_subject_audiences(self):
     # Sign
-    priv_key = CleartextJwkSetReader.from_json(test_vector.json_rsa_priv_key)
+    priv_key = jws.CleartextJwkSetReader.from_json(
+        test_vector.json_rsa_priv_key)
     signer = jwt.JwtPublicKeySign(priv_key)
     signed_token = signer.sign(test_vector.test_header_rsa,
                                test_vector.test_payload)
 
     # Verify
-    pub_key = CleartextJwkSetReader.from_json(test_vector.json_rsa_pub_key)
+    pub_key = jws.CleartextJwkSetReader.from_json(test_vector.json_rsa_pub_key)
     # Ignore issuer, subject and audience.
     verifier = jwt.JwtPublicKeyVerify(pub_key)
     self.assertTrue(verifier.verify(signed_token))
@@ -60,7 +61,8 @@ class JwtTest(unittest.TestCase):
 
   def test_jwt_public_key_verifier_with_exp_nbf(self):
     # Sign
-    priv_key = CleartextJwkSetReader.from_json(test_vector.json_rsa_priv_key)
+    priv_key = jws.CleartextJwkSetReader.from_json(
+        test_vector.json_rsa_priv_key)
     signer = jwt.JwtPublicKeySign(priv_key)
     # Valid exp time.
     payload = json.loads(test_vector.test_payload)
@@ -69,7 +71,7 @@ class JwtTest(unittest.TestCase):
     signed_token = signer.sign(test_vector.test_header_rsa, payload)
 
     # Verify
-    pub_key = CleartextJwkSetReader.from_json(test_vector.json_rsa_pub_key)
+    pub_key = jws.CleartextJwkSetReader.from_json(test_vector.json_rsa_pub_key)
     verifier = jwt.JwtPublicKeyVerify(pub_key)
     self.assertTrue(verifier.verify(signed_token))
 
@@ -113,7 +115,7 @@ class JwtTest(unittest.TestCase):
 
   def test_jwt_mac_verifier_with_issuer_subject_audiences(self):
     # Authenticate
-    key = CleartextJwkSetReader.from_json(test_vector.json_hmac_key)
+    key = jws.CleartextJwkSetReader.from_json(test_vector.json_hmac_key)
     authenticator = jwt.JwtMacAuthenticator(key)
     signed_token = authenticator.authenticate(test_vector.test_header_hmac,
                                               test_vector.test_payload)
@@ -141,7 +143,7 @@ class JwtTest(unittest.TestCase):
 
   def test_jwt_public_key_verifier_with_exp_nbf(self):
     # Authenticate
-    key = CleartextJwkSetReader.from_json(test_vector.json_hmac_key)
+    key = jws.CleartextJwkSetReader.from_json(test_vector.json_hmac_key)
     authenticator = jwt.JwtMacAuthenticator(key)
     # Valid exp time.
     payload = json.loads(test_vector.test_payload)
