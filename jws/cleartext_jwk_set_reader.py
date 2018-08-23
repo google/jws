@@ -105,7 +105,7 @@ class CleartextJwkSetReader(object):
       A JwkSet.
     """
 
-    parsed_keys = json.loads(json_keys.decode("utf-8"))
+    parsed_keys = json.loads(json_keys)
     if parsed_keys.get("keys", ""):
       # A list of keys.
       keys = []
