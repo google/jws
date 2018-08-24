@@ -71,12 +71,17 @@ class Hmac(Mac):
 
   def compute_mac(self, data):
     """See base class."""
+    if not isinstance(data, six.binary_type):
+      raise TypeError("data must be bytes")
     h = hmac.HMAC(self._hmac_key, self._hash, backends.default_backend())
     h.update(data)
     return h.finalize()
 
   def verify_mac(self, mac, data):
     """See base class."""
+    if not isinstance(mac, six.binary_type) or not isinstance(
+        data, six.binary_type):
+      return False
     try:
       h = hmac.HMAC(self._hmac_key, self._hash, backends.default_backend())
       h.update(data)

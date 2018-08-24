@@ -28,13 +28,13 @@ def urlsafe_b64encode(raw_bytes):
     raw_bytes = raw_bytes.encode("utf-8")
   # https://tools.ietf.org/html/rfc7515#appendix-C uses b64 encoding without
   # padding '='.
-  return base64.urlsafe_b64encode(raw_bytes).decode("ascii").rstrip("=").encode(
-      "ascii")
+  return base64.urlsafe_b64encode(raw_bytes).decode("utf-8").rstrip("=").encode(
+      "utf-8")
 
 
 def urlsafe_b64decode(b64string):
   if isinstance(b64string, six.text_type):
-    b64string = b64string.encode("ascii")
+    b64string = b64string.encode("utf-8")
   # Add extra padding '=' as https://tools.ietf.org/html/rfc7515#appendix-C uses
   # b64 encoding without padding.
   padded = b64string + b"=" * (4 - len(b64string) % 4)
@@ -52,10 +52,10 @@ def b64_to_int(b64string):
 
 def int_to_bytes(x, length):
   """Converts bigendian integer to byte array with fixed length."""
-  res = ""
-  for _ in range(length):
-    res = chr(x % 256) + res
-    x /= 256
+  res = bytearray(length)
+  for i in range(length):
+    res[length - i - 1] = int(x) % 256
+    x = int(x) // 256
   return res
 
 
@@ -78,11 +78,11 @@ def ecdsa_algorithm_to_curve_length(algorithm):
   _NIST_P521_CURVE_LENGTH_IN_BITS = 521
 
   if algorithm == "ES256":
-    return _NIST_P256_CURVE_LENGTH_IN_BITS / 8
+    return int(_NIST_P256_CURVE_LENGTH_IN_BITS // 8)
   elif algorithm == "ES384":
-    return _NIST_P384_CURVE_LENGTH_IN_BITS / 8
+    return int(_NIST_P384_CURVE_LENGTH_IN_BITS // 8)
   elif algorithm == "ES512":
-    return (_NIST_P521_CURVE_LENGTH_IN_BITS + 7) / 8
+    return int((_NIST_P521_CURVE_LENGTH_IN_BITS + 7) // 8)
   else:
     raise exceptions.UnsupportedAlgorithm("Unknown algorithm: %s" % (algorithm))
 
