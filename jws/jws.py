@@ -82,20 +82,21 @@ class JwsPublicKeyVerify(object):
     """Verifies whether the token is signed with the corresponding private key.
 
     Args:
-      token: string, the JWS compact serialization token as defined at
+      token: bytes, the JWS compact serialization token as defined at
         https://tools.ietf.org/html/rfc7515#section-7.1.
 
     Returns:
       True if the token was verified, false if not.
     """
     try:
-      token_parts = token.split(".")
+      token_parts = token.split(b".")
       if len(token_parts) != 3:
         return False
       [header, payload, sig] = [token_parts[0], token_parts[1], token_parts[2]]
       data = header + b"." + payload
       sig_bytes = jwsutil.urlsafe_b64decode(sig)
-      header_json = json.loads(jwsutil.urlsafe_b64decode(header))
+      header_json = json.loads(
+          jwsutil.urlsafe_b64decode(header).decode("utf-8"))
       if not header_json.get("alg", ""):
         return False
       header_kid = header_json.get("kid", "")
@@ -115,7 +116,7 @@ class JwsPublicKeyVerify(object):
             length = len(sig_bytes)
             if length % 2 != 0:
               return False
-            [r, s] = [sig_bytes[0:length / 2], sig_bytes[length / 2:]]
+            [r, s] = [sig_bytes[0:length // 2], sig_bytes[length // 2:]]
             mod_sig_bytes = utils.encode_dss_signature(
                 jwsutil.bytes_to_int(r), jwsutil.bytes_to_int(s))
           if verifier.verify(mod_sig_bytes, data):
@@ -211,20 +212,23 @@ class JwsMacVerify(object):
     """Verifies whether the token was authenticated with mac.
 
     Args:
-      token: string, the JWS compact serialization token as defined at
+      token: bytes, the JWS compact serialization token as defined at
         https://tools.ietf.org/html/rfc7515#section-7.1.
 
     Returns:
       True if the token was verified, false if not.
     """
     try:
-      token_parts = token.split(".")
+      if not isinstance(token, six.binary_type):
+        return False
+      token_parts = token.split(b".")
       if len(token_parts) != 3:
         return False
       [header, payload, mac] = [token_parts[0], token_parts[1], token_parts[2]]
       data = header + b"." + payload
       mac_bytes = jwsutil.urlsafe_b64decode(mac)
-      header_json = json.loads(jwsutil.urlsafe_b64decode(header))
+      header_json = json.loads(
+          jwsutil.urlsafe_b64decode(header).decode("utf-8"))
       if not header_json.get("alg", ""):
         return False
       header_kid = header_json.get("kid", "")
