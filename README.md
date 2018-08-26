@@ -109,7 +109,7 @@ rejected. Note that for signer, we only support 1 key. There are 2 reasons:
 
 ## Installation
 
-To install jws: 
+To install jws:
 ```
 git clone https://github.com/google/jws
 cd jws
@@ -123,24 +123,28 @@ To test jws: `sudo python setup.py test`
 ```
 import jws
 
-es512_ecdsa_token = 'eyJhbGciOiJFUzUxMiJ9.UGF5bG9hZA.AdwMgeerwtHoh-l192l60hp9wAHZFVJbLfD_UxMi70cwnZOYaRI1bKPWROc-mZZqwqT2SI-KGDKB34XO0aw_7XdtAG8GaSwFKdCAPZgoXD2YBJZCPEX3xKpRwcdOO8KpEHwJjyqOgzDO7iKvU8vcnwNrmxYbSW9ERBXukOXolLzeO_Jn'.encode("utf-8")
-es512_ecdsa_pub_key = r"""
+es256_ecdsa_token = 'eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.DtEhU3ljbEg8L38VWAfUAqOyKAM6-Xx-F4GawxaepmXFCgfTjDxw5djxLa8ISlSApmWQxfKTUJqPP3-Kg6NU1Q'.encode('utf-8')
+
+es256_ecdsa_pub_key = r"""
     {
       "kty":"EC",
-      "crv":"P-521",
-      "x":"AekpBQ8ST8a8VcfVOTNl353vSrDCLLJXmPk06wTjxrrjcBpXp5EOnYG_NjFZ6OvLFV1jSfS9tsz4qUxcWceqwQGk",
-      "y":"ADSmRA43Z1DSNx_RvcLI87cdL07l6jQyyBXMoxVg_l2Th-x3S1WDhjDly79ajL4Kkd0AZMaZmh9ubmf63e3kyMj2",
-      "alg":"ES512"
+      "crv":"P-256",
+      "x":"f83OJ3D2xF1Bg8vub9tLe1gHMzV76e8Tus9uPHvRVEU",
+      "y":"x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0",
+      "alg":"ES256"
     }"""
 # Set up phase: parse the key and initialize the verifier.
-key = jws.CleartextJwkSetReader.from_json(es512_ecdsa_pub_key)
-verifier = jws.JwsPublicKeyVerify(key)
+key = jws.CleartextJwkSetReader.from_json(es256_ecdsa_pub_key)
+verifier = jws.JwtPublicKeyVerify(key, 'joe', None, None, 1300819380)
 
 # Verify phase
 try:
-  verified_payload = verifier.verify(es512_ecdsa_token)
+  verified_payload = verifier.verify(es256_ecdsa_token)
+  print(verified_payload)
+  print(verified_payload['iss'] == 'joe' and verified_payload['exp']== 1300819380)
 except jws.SecurityException:
   fail
+
 ```
 
 > This is not an official Google product.
