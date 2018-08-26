@@ -19,6 +19,7 @@ import json
 import unittest
 
 from jws import jwsutil
+from jws import SecurityException
 import jws
 import six
 
@@ -124,45 +125,23 @@ class JwsTest(unittest.TestCase):
 
   # The followings are our own tests.
 
-  test_header_rsa = json.dumps(
-      {
-          'typ': 'JWT',
-          'alg': 'RS256'
-      }, separators=(',', ':')).encode('utf-8')
+  test_header_rsa = {'typ': 'JWT', 'alg': 'RS256'}
 
-  test_header_ecdsa = json.dumps(
-      {
-          'typ': 'JWT',
-          'alg': 'ES256'
-      }, separators=(',', ':')).encode('utf-8')
+  test_header_es256 = {'typ': 'JWT', 'alg': 'ES256'}
 
-  test_header_hmac = json.dumps(
-      {
-          'typ': 'JWT',
-          'alg': 'HS256'
-      }, separators=(',', ':')).encode('utf-8')
+  test_header_es512 = {'typ': 'JWT', 'alg': 'ES512'}
 
-  test_payload = json.dumps(
-      {
-          'aud': 'aud1',
-          'sub': 'subject1',
-          'iss': 'issuer1',
-      },
-      separators=(',', ':')).encode('utf-8')
+  test_header_hmac = {'typ': 'JWT', 'alg': 'HS256'}
 
-  test_header_ecdsa_kid1 = json.dumps(
-      {
-          'typ': 'JWT',
-          'alg': 'ES256',
-          'kid': 'kid1'
-      }, separators=(',', ':')).encode('utf-8')
+  test_payload = {
+      'aud': 'aud1',
+      'sub': 'subject1',
+      'iss': 'issuer1',
+  }
 
-  test_header_ecdsa_kid2 = json.dumps(
-      {
-          'typ': 'JWT',
-          'alg': 'ES256',
-          'kid': 'kid2'
-      }, separators=(',', ':')).encode('utf-8')
+  test_header_es256_kid1 = {'typ': 'JWT', 'alg': 'ES256', 'kid': 'kid1'}
+
+  test_header_es256_kid2 = {'typ': 'JWT', 'alg': 'ES256', 'kid': 'kid2'}
 
   test_json_ecdsa_priv_key_kid1 = r"""
     {
@@ -244,9 +223,12 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
     verifier = jws.JwsPublicKeyVerify(keys)
 
     # Use phase
-    self.assertTrue(verifier.verify(self.rsa_token))
+    try:
+      verifier.verify(self.rsa_token)
+    except SecurityException:
+      self.fail('Valid token, should not throw exception')
     for modified_token in _modify_token(self.rsa_token):
-      self.assertFalse(verifier.verify(modified_token))
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
 
   def test_jws_rsa_signer_and_verifier(self):
     algs = ['RS256', 'RS384', 'RS512', 'PS256', 'PS384', 'PS512']
@@ -257,10 +239,8 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
       json_pub_key = json.loads(self.json_rsa_pub_key)
       json_pub_key['alg'] = alg
       json_pub_key = json.dumps(json_pub_key)
-
-      json_header_rsa = json.loads(self.test_header_rsa.decode('utf-8'))
+      json_header_rsa = dict(self.test_header_rsa)
       json_header_rsa['alg'] = alg
-      json_header_rsa = json.dumps(json_header_rsa).encode('utf-8')
 
       # Sign
       priv_key = jws.CleartextJwkSetReader.from_json(json_priv_key)
@@ -270,9 +250,12 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
       # Verify
       pub_key = jws.CleartextJwkSetReader.from_json(json_pub_key)
       verifier = jws.JwsPublicKeyVerify(pub_key)
-      self.assertTrue(verifier.verify(signed_token))
+      try:
+        verifier.verify(signed_token)
+      except SecurityException:
+        self.fail('Valid token, should not throw exception')
       for modified_token in _modify_token(signed_token):
-        self.assertFalse(verifier.verify(modified_token))
+        self.assertRaises(SecurityException, verifier.verify, modified_token)
 
   def test_jws_ecdsa_verifier_with_rfc_es256(self):
     # Set up phase: parse the key and initialize the verifier.
@@ -280,32 +263,57 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
     verifier = jws.JwsPublicKeyVerify(key)
 
     # Use phase
-    self.assertTrue(verifier.verify(self.es256_ecdsa_token))
+    try:
+      verifier.verify(self.es256_ecdsa_token)
+    except SecurityException:
+      self.fail('Valid token, should not throw exception')
     for modified_token in _modify_token(self.es256_ecdsa_token):
-      self.assertFalse(verifier.verify(modified_token))
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
 
   def test_jws_ecdsa_verifier_with_rfc_es512(self):
-    # Set up phase: parse the key and initialize the verifier.
-    key = jws.CleartextJwkSetReader.from_json(self.es512_ecdsa_pub_key)
-    verifier = jws.JwsPublicKeyVerify(key)
+    # Verify
+    pub_key = jws.CleartextJwkSetReader.from_json(self.es512_ecdsa_pub_key)
+    verifier = jws.JwsPublicKeyVerify(pub_key)
 
-    # Use phase
-    self.assertTrue(verifier.verify(self.es512_ecdsa_token))
+    try:
+      verified_payload = verifier.verify(self.es512_ecdsa_token)
+      self.assertEqual(b'Payload', verified_payload)
+    except SecurityException:
+      self.fail('Valid token, should not throw exception')
     for modified_token in _modify_token(self.es512_ecdsa_token):
-      self.assertFalse(verifier.verify(modified_token))
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
+
+  def test_jws_ecdsa_signer_verifier_es512(self):
+    # Sign
+    priv_key = jws.CleartextJwkSetReader.from_json(self.es512_ecdsa_priv_key)
+    signer = jws.JwsPublicKeySign(priv_key)
+    signed_token = signer.sign(self.test_header_es512, self.test_payload)
+
+    # Verify
+    pub_key = jws.CleartextJwkSetReader.from_json(self.es512_ecdsa_pub_key)
+    verifier = jws.JwsPublicKeyVerify(pub_key)
+    try:
+      verifier.verify(signed_token)
+    except SecurityException:
+      self.fail('Valid token, should not throw exception')
+    for modified_token in _modify_token(signed_token):
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
 
   def test_jws_ecdsa_signer_verifier_es256(self):
     # Sign
     priv_key = jws.CleartextJwkSetReader.from_json(self.es256_ecdsa_priv_key)
     signer = jws.JwsPublicKeySign(priv_key)
-    signed_token = signer.sign(self.test_header_ecdsa, self.test_payload)
+    signed_token = signer.sign(self.test_header_es256, self.test_payload)
 
     # Verify
     pub_key = jws.CleartextJwkSetReader.from_json(self.es256_ecdsa_pub_key)
     verifier = jws.JwsPublicKeyVerify(pub_key)
-    self.assertTrue(verifier.verify(signed_token))
+    try:
+      verifier.verify(signed_token)
+    except SecurityException:
+      self.fail('Valid token, should not throw exception')
     for modified_token in _modify_token(signed_token):
-      self.assertFalse(verifier.verify(modified_token))
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
 
   def test_jws_verifier_with_multiple_keys(self):
     # Set up phase: parse the keys and initialize the verifier.
@@ -313,30 +321,36 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
     verifier = jws.JwsPublicKeyVerify(keys)
 
     # Use phase
-    self.assertTrue(verifier.verify(self.rsa_token))
-    self.assertTrue(verifier.verify(self.es256_ecdsa_token))
+    try:
+      verifier.verify(self.rsa_token)
+      verifier.verify(self.es256_ecdsa_token)
+    except SecurityException:
+      self.fail('Valid token, should not throw exception')
     for modified_token in _modify_token(self.rsa_token):
-      self.assertFalse(verifier.verify(modified_token))
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
     for modified_token in _modify_token(self.es256_ecdsa_token):
-      self.assertFalse(verifier.verify(modified_token))
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
 
   def test_jws_verifier_with_kid(self):
     # Sign
     priv_key = jws.CleartextJwkSetReader.from_json(
         self.test_json_ecdsa_priv_key_kid1)
     signer = jws.JwsPublicKeySign(priv_key)
-    signed_token_kid1 = signer.sign(self.test_header_ecdsa_kid1,
+    signed_token_kid1 = signer.sign(self.test_header_es256_kid1,
                                     self.test_payload)
-    signed_token_kid2 = signer.sign(self.test_header_ecdsa_kid2,
+    signed_token_kid2 = signer.sign(self.test_header_es256_kid2,
                                     self.test_payload)
 
     # Verify
     pub_key = jws.CleartextJwkSetReader.from_json(
         self.test_json_ecdsa_pub_key_kid1)
     verifier = jws.JwsPublicKeyVerify(pub_key)
-    self.assertTrue(verifier.verify(signed_token_kid1))
+    try:
+      verifier.verify(signed_token_kid1)
+    except SecurityException:
+      self.fail('Valid token, should not throw exception')
     # The signature is valid but the kids don't match.
-    self.assertFalse(verifier.verify(signed_token_kid2))
+    self.assertRaises(SecurityException, verifier.verify, signed_token_kid2)
 
   def test_jws_mac_verifier_with_rfc(self):
     # Set up phase: parse the key and initialize the JwsMacVerify
@@ -344,9 +358,12 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
     verifier = jws.JwsMacVerify(key)
 
     # Use phase
-    self.assertTrue(verifier.verify(self.hmac_token))
-    #for modified_token in _modify_token(self.hmac_token):
-    #  self.assertFalse(verifier.verify(modified_token))
+    try:
+      verifier.verify(self.hmac_token)
+    except SecurityException:
+      self.fail('Valid token, should not throw exception')
+    for modified_token in _modify_token(self.hmac_token):
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
 
   def test_jws_mac_authenticator_and_verifier(self):
     algs = ['HS256', 'HS384', 'HS512']
@@ -354,9 +371,8 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
       json_hmac_key = json.loads(self.json_hmac_key)
       json_hmac_key['alg'] = alg
       json_hmac_key = json.dumps(json_hmac_key)
-      json_header_hmac = json.loads(self.test_header_hmac.decode('utf-8'))
+      json_header_hmac = dict(self.test_header_hmac)
       json_header_hmac['alg'] = alg
-      json_header_hmac = json.dumps(json_header_hmac).encode('utf-8')
 
       # Authenticator
       mac_key = jws.CleartextJwkSetReader.from_json(json_hmac_key)
@@ -365,10 +381,13 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
                                                 self.test_payload)
       # Verify
       verifier = jws.JwsMacVerify(mac_key)
-      self.assertTrue(verifier.verify(signed_token))
+      try:
+        verifier.verify(signed_token)
+      except SecurityException:
+        self.fail('Valid token, should not throw exception')
 
       for modified_token in _modify_token(signed_token):
-        self.assertFalse(verifier.verify(modified_token))
+        self.assertRaises(SecurityException, verifier.verify, modified_token)
 
   def test_jws_rsa_from_pem_key(self):
     # Sign the token
@@ -381,20 +400,26 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
     rsa_pub_key = jws.CleartextJwkSetReader.from_pem(
         self.test_pem_rsa_2048_pub_key.encode('utf-8'), 'RS256')
     verifier = jws.JwsPublicKeyVerify(rsa_pub_key)
-    self.assertTrue(verifier.verify(signed_token))
+    try:
+      verifier.verify(signed_token)
+    except SecurityException:
+      self.fail('Valid token, should not throw exception')
 
   def test_jws_ec_from_pem_key(self):
     # Sign the token
     rsa_priv_key = jws.CleartextJwkSetReader.from_pem(
         self.test_pem_ec_p256_priv_key.encode('utf-8'), 'ES256')
     signer = jws.JwsPublicKeySign(rsa_priv_key)
-    signed_token = signer.sign(self.test_header_ecdsa, self.test_payload)
+    signed_token = signer.sign(self.test_header_es256, self.test_payload)
 
     # Verify the token
     rsa_pub_key = jws.CleartextJwkSetReader.from_pem(
         self.test_pem_ec_p256_pub_key.encode('utf-8'), 'ES256')
     verifier = jws.JwsPublicKeyVerify(rsa_pub_key)
-    self.assertTrue(verifier.verify(signed_token))
+    try:
+      verifier.verify(signed_token)
+    except SecurityException:
+      self.fail('Valid token, should not throw exception')
 
 
 def _modify_token(token):

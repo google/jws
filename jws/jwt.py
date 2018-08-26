@@ -22,6 +22,7 @@ __author__ = "quannguyen@google.com (Quan Nguyen)"
 import json
 import jws
 from . import jwsutil
+from .exceptions import SecurityException
 import six
 import datetime
 import calendar
@@ -63,17 +64,24 @@ class JwtPublicKeyVerify(object):
     """Verifies whether the token is signed with the corresponding private key and whether the payload's claims are valid.
 
     Args:
-      token: string, the JWS compact serialization token as defined at
+      token: bytes, the JWS compact serialization token as defined at
         https://tools.ietf.org/html/rfc7515#section-7.1.
 
     Returns:
-      True if the token was verified, false if not.
+      dict, the deserialized JSON payload in the token.
+
+    Raises:
+      SecurityException: when the token is invalid
     """
-    if not self.verifier.verify(token):
-      return False
-    payload = json.loads(jwsutil.urlsafe_b64decode(token.split(".")[1]))
-    return _verify_claims(payload, self.issuer, self.subject, self.audiences,
-                          self.clock_skew_tolerance)
+    try:
+      payload = json.loads(self.verifier.verify(token).decode("utf-8"))
+      if _verify_claims(payload, self.issuer, self.subject, self.audiences,
+                        self.clock_skew_tolerance):
+        return payload
+      else:
+        raise SecurityException("Invalid token")
+    except:
+      raise SecurityException("Invalid token")
 
 
 class JwtPublicKeySign(object):
@@ -97,13 +105,12 @@ class JwtPublicKeySign(object):
     """Computes the signed jwt as defined at rfc7515#section-7.1.
 
     Args:
-      header: bytes, the header to be signed.
-      payload: bytes, the payload to be signed.
+      header: dict, dictionary of header to convert to JSON and sign.
+      payload: dict, dictionary of the payload to conert to JSON and sign.
 
     Returns:
-      base64url(header) || '.' || base64url(payload) || '.' ||
-      base64url(signature), where the signature is computed over
-      base64url(utf8(header)) || '.' || base64url(payload).
+      bytes, the signed token as defined at
+      https://tools.ietf.org/html/rfc7515#section-7.1.
     """
     return self.signer.sign(header, payload)
 
@@ -144,17 +151,24 @@ class JwtMacVerify(object):
     """Verifies whether the token was authenticated with mac and whether the payload's claims are valid.
 
     Args:
-      token: string, the JWS compact serialization token as defined at
+      token: bytes, the JWS compact serialization token as defined at
         https://tools.ietf.org/html/rfc7515#section-7.1.
 
     Returns:
-      True if the token was verified, false if not.
+      dict, the deserialized JSON payload in the token.
+
+    Raises:
+      SecurityException: when the token is not valid.
     """
-    if not self.verifier.verify(token):
-      return False
-    payload = json.loads(jwsutil.urlsafe_b64decode(token.split(".")[1]))
-    return _verify_claims(payload, self.issuer, self.subject, self.audiences,
-                          self.clock_skew_tolerance)
+    try:
+      payload = json.loads(self.verifier.verify(token).decode("utf-8"))
+      if _verify_claims(payload, self.issuer, self.subject, self.audiences,
+                        self.clock_skew_tolerance):
+        return payload
+      else:
+        raise SecurityException("Invalid token")
+    except:
+      raise SecurityException("Invalid token")
 
 
 class JwtMacAuthenticator(object):
@@ -175,15 +189,13 @@ class JwtMacAuthenticator(object):
 
   def authenticate(self, header, payload):
     """Computes the authenticated jwt as defined at rfc7515#section-7.1.
-
     Args:
-      header: bytes, the header to be authenticated.
-      payload: bytes, the payload to be authenticated.
+      header: dict, dictionary of header to convert to JSON and sign.
+      payload: dict, dictionary of payload to convert to JSON and sign.
 
     Returns:
-      base64url(header) || '.' || base64url(payload) || '.' ||
-      base64url(mac), where the mac is computed over
-      base64url(utf8(header)) || '.' || base64url(payload).
+      bytes, the authenticated token as defined at
+      https://tools.ietf.org/html/rfc7515#section-7.1.
     """
     return self.authenticator.authenticate(header, payload)
 

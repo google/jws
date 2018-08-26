@@ -25,6 +25,8 @@ __author__ = "quannguyen@google.com (Quan Nguyen)"
 
 import abc
 
+from .exceptions import SecurityException
+
 
 class Mac(object):
   """Abstract base class for message authentication code (MAC)."""
@@ -48,6 +50,6 @@ class Mac(object):
     Args:
       mac: bytes, the message authentication code to verify against data.
       data: bytes, the data.
-    Returns:
-      True if the mac was valid, false if not.
+    Raises:
+      SecurityException: when the mac is invalid.
     """

@@ -11,10 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Init file for jws."""
-from .jws import (JwsPublicKeySign, JwsPublicKeyVerify, JwsMacVerify,
-                  JwsMacAuthenticator)
-from .jwt import (JwtPublicKeySign, JwtPublicKeyVerify, JwtMacVerify,
-                  JwtMacAuthenticator)
-from .cleartext_jwk_set_reader import CleartextJwkSetReader
-from .exceptions import SecurityException
+"""Custom exceptions for jws package."""
+
+
+class SecurityException(Exception):
+  """Class for security exception."""
+  pass

@@ -67,9 +67,8 @@ class EcdsaVerify(PublicKeyVerify):
     """See base class."""
     if not isinstance(signature, six.binary_type) or not isinstance(
         data, six.binary_type):
-      return False
+      raise SecurityException("Signature and data must be bytes")
     try:
       self.pub_key.verify(signature, data, ec.ECDSA(self.hash))
-      return True
     except:
-      return False
+      raise SecurityException("Invalid signature")

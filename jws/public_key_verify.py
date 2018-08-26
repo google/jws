@@ -26,6 +26,8 @@ __author__ = "quannguyen@google.com (Quan Nguyen)"
 
 import abc
 
+from .exceptions import SecurityException
+
 
 class PublicKeyVerify(object):
   """Abstract base class for public key verifying."""
@@ -39,6 +41,6 @@ class PublicKeyVerify(object):
       signature: bytes, the signature of data.
       data: bytes, the data to verify.
 
-    Returns:
-      True if the signature was valid, false if not.
+    Raises:
+      SecurityException: when the signature is invalid.
     """
