@@ -22,6 +22,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 import six
 
 from . import jwsutil
+from .exceptions import SecurityException
 from .public_key_verify import PublicKeyVerify
 
 
@@ -50,9 +51,8 @@ class RsaVerify(PublicKeyVerify):
     """See base class."""
     if not isinstance(data, six.binary_type) or not isinstance(
         data, six.binary_type):
-      return False
+      raise SecurityException("Signature and data must be bytes")
     try:
       self.pub_key.verify(signature, data, self.padding, self.hash)
-      return True
     except:
-      return False
+      raise SecurityException("Invalid signature")

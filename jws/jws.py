@@ -35,6 +35,7 @@ import six
 from . import jwsutil
 from .ecdsa_sign import EcdsaSign
 from .ecdsa_verify import EcdsaVerify
+from .exceptions import SecurityException
 from .hmac import Hmac
 from .rsa_sign import RsaSign
 from .rsa_verify import RsaVerify
@@ -73,21 +74,29 @@ class JwsPublicKeyVerify(object):
         https://tools.ietf.org/html/rfc7515#section-7.1.
 
     Returns:
-      True if the token was verified, false if not.
+      bytes, the payload in the token. In contrast with JWT, JWS does not
+      require that payload is a JSON object.
+
+    Raises:
+      SecurityException: when the token is invalid.
     """
     try:
+      if not isinstance(token, six.binary_type):
+        raise SecurityException("Token must be bytes")
       token_parts = token.split(b".")
       if len(token_parts) != 3:
-        return False
+        raise SecurityException(
+            "Token must be of the form header.payload.signature")
       [header, payload, sig] = [token_parts[0], token_parts[1], token_parts[2]]
       data = header + b"." + payload
       sig_bytes = jwsutil.urlsafe_b64decode(sig)
       header_json = json.loads(
           jwsutil.urlsafe_b64decode(header).decode("utf-8"))
       if not header_json.get("alg", ""):
-        return False
+        raise SecurityException("Token must contain 'alg'")
       header_kid = header_json.get("kid", "")
       # In practice, there is only 1 key that matches alg or kid.
+      verified = False
       for (verifier, kid) in self.verifiers:
         found_candidate_verifier = False
         if header_kid:
@@ -102,15 +111,23 @@ class JwsPublicKeyVerify(object):
             # signature is the DER encoding of [r, s].
             length = len(sig_bytes)
             if length % 2 != 0:
-              return False
+              raise SecurityException("Token's length is not divisible by 2")
             [r, s] = [sig_bytes[0:length // 2], sig_bytes[length // 2:]]
             mod_sig_bytes = utils.encode_dss_signature(
                 jwsutil.bytes_to_int(r), jwsutil.bytes_to_int(s))
-          if verifier.verify(mod_sig_bytes, data):
-            return True
-      return False
+          try:
+            verifier.verify(mod_sig_bytes, data)
+            verified = True
+          except:
+            raise SecurityException("Invalid signature")
+      if verified:
+        return jwsutil.urlsafe_b64decode(payload)
+      else:
+        raise SecurityException("Invalid signature")
+    except SecurityException as e:
+      raise e
     except:
-      return False
+      raise SecurityException("Invalid token")
 
 
 class JwsPublicKeySign(object):
@@ -148,19 +165,16 @@ class JwsPublicKeySign(object):
     """Computes the signed jws as defined at rfc7515#section-7.1.
 
     Args:
-      header: bytes, the header to be signed.
-      payload: bytes, the payload to be signed.
+      header: dict, dictionary of header to convert to JSON and sign.
+      payload: dict, dictionary of the payload to conert to JSON and sign.
 
     Returns:
-      base64url(header) || '.' || base64url(payload) || '.' ||
-      base64url(signature), where the signature is computed over
-      base64url(utf8(header)) || '.' || base64url(payload).
+      bytes, the signed token as defined at
+      https://tools.ietf.org/html/rfc7515#section-7.1.
     """
-    if not isinstance(header, six.binary_type) or not isinstance(
-        payload, six.binary_type):
-      raise TypeError("header and payload must be bytes.")
     signing_input = jwsutil.urlsafe_b64encode(
-        header) + b"." + jwsutil.urlsafe_b64encode(payload)
+        jwsutil.json_encode(header)) + b"." + jwsutil.urlsafe_b64encode(
+            jwsutil.json_encode(payload))
     signature = self.signer.sign(signing_input)
     if self.algorithm[:2] == "ES":
       # Standard Ecdsa signature is the DER encoding of [r, s] while Jws's
@@ -203,23 +217,29 @@ class JwsMacVerify(object):
         https://tools.ietf.org/html/rfc7515#section-7.1.
 
     Returns:
-      True if the token was verified, false if not.
+      bytes, the payload in the token. In contrast with JWT, JWS does not
+      require that the payload is a JSON object.
+
+    Raises:
+      SecurityException: when the token is not valid.
     """
     try:
       if not isinstance(token, six.binary_type):
-        return False
+        raise SecurityException("Token must be bytes")
       token_parts = token.split(b".")
       if len(token_parts) != 3:
-        return False
+        raise SecurityException(
+            "Token must be of the form header.payload.signature")
       [header, payload, mac] = [token_parts[0], token_parts[1], token_parts[2]]
       data = header + b"." + payload
       mac_bytes = jwsutil.urlsafe_b64decode(mac)
       header_json = json.loads(
           jwsutil.urlsafe_b64decode(header).decode("utf-8"))
       if not header_json.get("alg", ""):
-        return False
+        raise SecurityException("Token must contain 'alg'")
       header_kid = header_json.get("kid", "")
       # In practice, there is only 1 key that matches alg or kid.
+      verified = False
       for (verifier, kid) in self.verifiers:
         found_candidate_verifier = False
         if header_kid:
@@ -228,11 +248,19 @@ class JwsMacVerify(object):
         elif header_json["alg"] == verifier.algorithm:
           found_candidate_verifier = True
         if found_candidate_verifier:
-          if verifier.verify_mac(mac_bytes, data):
-            return True
-      return False
+          try:
+            verifier.verify_mac(mac_bytes, data)
+            verified = True
+          except:
+            raise SecurityException("Invalid signature")
+      if verified:
+        return jwsutil.urlsafe_b64decode(payload)
+      else:
+        raise SecurityException("Invalid signature")
+    except SecurityException as e:
+      raise e
     except:
-      return False
+      raise SecurityException("Invalid token")
 
 
 class JwsMacAuthenticator(object):
@@ -265,20 +293,16 @@ class JwsMacAuthenticator(object):
 
   def authenticate(self, header, payload):
     """Computes the authenticated jws as defined at rfc7515#section-7.1.
-
     Args:
-      header: bytes, the header to be authenticated.
-      payload: bytes, the payload to be authenticated.
+      header: dict, dictionary of header to convert to JSON and sign.
+      payload: dict, dictionary of payload to convert to JSON and sign.
 
     Returns:
-      base64url(header) || '.' || base64url(payload) || '.' ||
-      base64url(mac), where the mac is computed over
-      base64url(utf8(header)) || '.' || base64url(payload).
+      bytes, the authenticated token as defined at
+      https://tools.ietf.org/html/rfc7515#section-7.1.
     """
-    if not isinstance(header, six.binary_type) or not isinstance(
-        payload, six.binary_type):
-      raise TypeError("header and payload must be bytes.")
     authenticating_input = jwsutil.urlsafe_b64encode(
-        header) + b"." + jwsutil.urlsafe_b64encode(payload)
+        jwsutil.json_encode(header)) + b"." + jwsutil.urlsafe_b64encode(
+            jwsutil.json_encode(payload))
     mac_bytes = self.mac.compute_mac(authenticating_input)
     return authenticating_input + b"." + jwsutil.urlsafe_b64encode(mac_bytes)

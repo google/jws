@@ -123,7 +123,7 @@ To test jws: `sudo python setup.py test`
 ```
 import jws
 
-es512_ecdsa_token = 'eyJhbGciOiJFUzUxMiJ9.UGF5bG9hZA.AdwMgeerwtHoh-l192l60hp9wAHZFVJbLfD_UxMi70cwnZOYaRI1bKPWROc-mZZqwqT2SI-KGDKB34XO0aw_7XdtAG8GaSwFKdCAPZgoXD2YBJZCPEX3xKpRwcdOO8KpEHwJjyqOgzDO7iKvU8vcnwNrmxYbSW9ERBXukOXolLzeO_Jn'
+es512_ecdsa_token = 'eyJhbGciOiJFUzUxMiJ9.UGF5bG9hZA.AdwMgeerwtHoh-l192l60hp9wAHZFVJbLfD_UxMi70cwnZOYaRI1bKPWROc-mZZqwqT2SI-KGDKB34XO0aw_7XdtAG8GaSwFKdCAPZgoXD2YBJZCPEX3xKpRwcdOO8KpEHwJjyqOgzDO7iKvU8vcnwNrmxYbSW9ERBXukOXolLzeO_Jn'.encode("utf-8")
 es512_ecdsa_pub_key = r"""
     {
       "kty":"EC",
@@ -137,7 +137,10 @@ key = jws.CleartextJwkSetReader.from_json(es512_ecdsa_pub_key)
 verifier = jws.JwsPublicKeyVerify(key)
 
 # Verify phase
-verified = verifier.verify(es512_ecdsa_token)
+try:
+  verified_payload = verifier.verify(es512_ecdsa_token)
+except jws.SecurityException:
+  fail
 ```
 
 > This is not an official Google product.

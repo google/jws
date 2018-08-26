@@ -18,6 +18,7 @@ import binascii
 from cryptography import exceptions
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
+import json
 import six
 
 
@@ -39,6 +40,10 @@ def urlsafe_b64decode(b64string):
   # b64 encoding without padding.
   padded = b64string + b"=" * (4 - len(b64string) % 4)
   return base64.urlsafe_b64decode(padded)
+
+
+def json_encode(data):
+  return json.dumps(data).encode("utf-8")
 
 
 def bytes_to_int(b):

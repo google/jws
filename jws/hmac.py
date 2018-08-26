@@ -22,6 +22,7 @@ from cryptography.hazmat.primitives import hmac
 import six
 
 from .mac import Mac
+from .exceptions import SecurityException
 
 
 class Hmac(Mac):
@@ -69,11 +70,10 @@ class Hmac(Mac):
     """See base class."""
     if not isinstance(mac, six.binary_type) or not isinstance(
         data, six.binary_type):
-      return False
+      raise SecurityException("Mac or data must be bytes")
     try:
       h = hmac.HMAC(self._hmac_key, self._hash, backends.default_backend())
       h.update(data)
       h.verify(mac)
-      return True
     except:
-      return False
+      raise SecurityException("Invalid mac")
