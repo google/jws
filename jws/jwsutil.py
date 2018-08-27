@@ -43,7 +43,7 @@ def urlsafe_b64decode(b64string):
 
 
 def json_encode(data):
-  return json.dumps(data).encode("utf-8")
+  return json.dumps(data, separators=(",", ":")).encode("utf-8")
 
 
 def bytes_to_int(b):
