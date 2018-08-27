@@ -145,6 +145,17 @@ class JwsTest(unittest.TestCase):
 
   test_header_es256_kid2 = {'typ': 'JWT', 'alg': 'ES256', 'kid': 'kid2'}
 
+  test_json_ecdsa_priv_key_kid2 = r"""
+    {
+      "kty":"EC",
+      "crv":"P-256",
+      "x":"f83OJ3D2xF1Bg8vub9tLe1gHMzV76e8Tus9uPHvRVEU",
+      "y":"x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0",
+      "d":"jpsQnnGQmL-YBIffH1136cspYG6-0iY7X1fCE9-E9LI",
+      "kid":"kid2",
+      "alg":"ES256"
+    }"""
+
   test_json_ecdsa_priv_key_kid1 = r"""
     {
       "kty":"EC",
@@ -342,13 +353,16 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
 
   def test_jws_verifier_with_kid(self):
     # Sign
-    priv_key = jws.CleartextJwkSetReader.from_json(
+    priv_key1 = jws.CleartextJwkSetReader.from_json(
         self.test_json_ecdsa_priv_key_kid1)
-    signer = jws.JwsPublicKeySign(priv_key)
-    signed_token_kid1 = signer.sign(self.test_header_es256_kid1,
-                                    self.test_payload)
-    signed_token_kid2 = signer.sign(self.test_header_es256_kid2,
-                                    self.test_payload)
+    signer1 = jws.JwsPublicKeySign(priv_key1)
+    signed_token_kid1 = signer1.sign(self.test_header_es256_kid1,
+                                     self.test_payload)
+    priv_key2 = jws.CleartextJwkSetReader.from_json(
+        self.test_json_ecdsa_priv_key_kid2)
+    signer2 = jws.JwsPublicKeySign(priv_key2)
+    signed_token_kid2 = signer2.sign(self.test_header_es256_kid2,
+                                     self.test_payload)
 
     # Verify
     pub_key = jws.CleartextJwkSetReader.from_json(
@@ -400,6 +414,29 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
 
       for modified_token in _modify_token(signed_token):
         self.assertRaises(SecurityException, verifier.verify, modified_token)
+
+  def test_jws_with_mismatch_kid_or_algorithm(self):
+    hmac_key = jws.CleartextJwkSetReader.from_json(self.json_hmac_key)
+    authenticator = jws.JwsMacAuthenticator(hmac_key)
+    json_header_hmac = dict(self.test_header_hmac)
+    # Change the algorithm to a wrong one.
+    json_header_hmac['alg'] = 'HS512'
+    self.assertRaises(SecurityException, authenticator.authenticate,
+                      json_header_hmac, self.test_payload)
+    priv_key = jws.CleartextJwkSetReader.from_json(
+        self.test_json_ecdsa_priv_key_kid1)
+    signer = jws.JwsPublicKeySign(priv_key)
+    json_header_es256 = dict(self.test_header_es256_kid1)
+    # Change the algorithm to a wrong one.
+    json_header_es256['alg'] = 'ES512'
+    self.assertRaises(SecurityException, signer.sign, json_header_es256,
+                      self.test_payload)
+
+    json_header_es256 = dict(self.test_header_es256_kid1)
+    # Change kid to a wrong one.
+    json_header_es256['kid'] = 'kid0'
+    self.assertRaises(SecurityException, signer.sign, json_header_es256,
+                      self.test_payload)
 
   def test_jws_rsa_from_pem_key(self):
     # Sign the token

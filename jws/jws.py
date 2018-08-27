@@ -171,7 +171,17 @@ class JwsPublicKeySign(object):
     Returns:
       bytes, the signed token as defined at
       https://tools.ietf.org/html/rfc7515#section-7.1.
+
+    Raises:
+      SecurityException: if the header's algorithm or kid does not match the
+      key's.
     """
+    if ((header.get("alg", None) is not None and
+         header["alg"] != self.algorithm) or
+        (header.get("kid", None) is not None and
+         getattr(self, "kid", None) is not None and header["kid"] != self.kid)):
+      raise SecurityException(
+          "Header's algorithm or kid does not match the key's")
     signing_input = jwsutil.urlsafe_b64encode(
         jwsutil.json_encode(header)) + b"." + jwsutil.urlsafe_b64encode(
             jwsutil.json_encode(payload))
@@ -300,7 +310,17 @@ class JwsMacAuthenticator(object):
     Returns:
       bytes, the authenticated token as defined at
       https://tools.ietf.org/html/rfc7515#section-7.1.
+
+    Raises:
+      SecurityException: if the header's algorithm or kid does not match the
+      key's.
     """
+    if ((header.get("alg", None) is not None and
+         header["alg"] != self.algorithm) or
+        (header.get("kid", None) is not None and
+         getattr(self, "kid", None) is not None and header["kid"] != self.kid)):
+      raise SecurityException(
+          "Header's algorithm or kid does not match the key's")
     authenticating_input = jwsutil.urlsafe_b64encode(
         jwsutil.json_encode(header)) + b"." + jwsutil.urlsafe_b64encode(
             jwsutil.json_encode(payload))
