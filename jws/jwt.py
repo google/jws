@@ -111,6 +111,10 @@ class JwtPublicKeySign(object):
     Returns:
       bytes, the signed token as defined at
       https://tools.ietf.org/html/rfc7515#section-7.1.
+
+    Raises:
+      SecurityException: if the header's algorithm or kid does not match the
+      key's.
     """
     return self.signer.sign(header, payload)
 
@@ -196,6 +200,10 @@ class JwtMacAuthenticator(object):
     Returns:
       bytes, the authenticated token as defined at
       https://tools.ietf.org/html/rfc7515#section-7.1.
+
+    Raises:
+      SecurityException: if the header's algorithm or kid does not match the
+      key's.
     """
     return self.authenticator.authenticate(header, payload)
 
