@@ -14,8 +14,7 @@
 """Static methods for reading cleartext keysets.
 
 Warning: storing cleartext keysets in source code or disk is a bad practice.
-User
-should use Key Management System (KMS) such as Cloud KMS
+User should use Key Management System (KMS) such as Cloud KMS
 (https://cloud.google.com/kms/) or AWS KMS (https://aws.amazon.com/kms/) to
 manage raw Jwk Keyset.
 """
