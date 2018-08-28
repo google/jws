@@ -33,7 +33,7 @@ class CleartextJwkSetReader(object):
   """Static methods for reading cleartext keysets."""
 
   @classmethod
-  def from_pem(cls, pem_key, algorithm):
+  def from_pem(cls, pem_key, algorithm, kid=""):
     """Parses PEM key and transformat it to Jwk key.
 
     As PEM key doesn't specify the full algorithm to use (e.g. a RSA key doesn't
@@ -43,6 +43,8 @@ class CleartextJwkSetReader(object):
       pem_key: bytes, RSA or ECDSA key in PEM format.
       algorithm: string, RSA or ECDSA algorithm as defined at
         https://tools.ietf.org/html/rfc7518#section-3.1.
+      kid: string, Key ID as defined at
+        https://tools.ietf.org/html/rfc7515#section-4.1.4.
 
     Raises:
       UnsupportedAlgorithm: if the algorithm is not supported or pem_key is
@@ -67,13 +69,13 @@ class CleartextJwkSetReader(object):
       except (ValueError, TypeError, exceptions.UnsupportedAlgorithm) as e:
         raise exceptions.UnsupportedAlgorithm("Pem key parsing error: %s" % (e))
     if isinstance(key, rsa.RSAPrivateKey):
-      return JwkSet([Jwk("RSA", "", algorithm, None, key, key.public_key())])
+      return JwkSet([Jwk("RSA", kid, algorithm, None, key, key.public_key())])
     elif isinstance(key, rsa.RSAPublicKey):
-      return JwkSet([Jwk("RSA", "", algorithm, None, None, key)])
+      return JwkSet([Jwk("RSA", kid, algorithm, None, None, key)])
     elif isinstance(key, ec.EllipticCurvePrivateKey):
-      return JwkSet([Jwk("EC", "", algorithm, None, key, key.public_key())])
+      return JwkSet([Jwk("EC", kid, algorithm, None, key, key.public_key())])
     elif isinstance(key, ec.EllipticCurvePublicKey):
-      return JwkSet([Jwk("EC", "", algorithm, None, None, key)])
+      return JwkSet([Jwk("EC", kid, algorithm, None, None, key)])
     else:
       raise exceptions.UnsupportedAlgorithm(
           "Unknown supported key pem: %s" % (e))
@@ -84,7 +86,7 @@ class CleartextJwkSetReader(object):
 
     Args:
       json_keys: string, a set of Jwk keys as defined at rfc7517#section-5.1. If
-      the field "keys" is missing, we'll treat it as a single key.
+        the field "keys" is missing, we'll treat it as a single key.
 
     Raises:
       UnsupportedAlgorithm: if the key type is not supported.

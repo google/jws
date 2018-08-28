@@ -80,12 +80,15 @@ class JwtPublicKeyVerify(object):
         return payload
       else:
         raise SecurityException("Invalid token")
+    except SecurityException as e:
+      raise e
     except:
       raise SecurityException("Invalid token")
 
 
 class JwtPublicKeySign(object):
   """Jwt public key signer that suppports both Ecdsa and Rsa signature schemes.
+
   """
 
   def __init__(self, jwk_set):
@@ -171,6 +174,8 @@ class JwtMacVerify(object):
         return payload
       else:
         raise SecurityException("Invalid token")
+    except SecurityException as e:
+      raise e
     except:
       raise SecurityException("Invalid token")
 
@@ -193,6 +198,7 @@ class JwtMacAuthenticator(object):
 
   def authenticate(self, header, payload):
     """Computes the authenticated jwt as defined at rfc7515#section-7.1.
+
     Args:
       header: dict, dictionary of header to convert to JSON and sign.
       payload: dict, dictionary of payload to convert to JSON and sign.
