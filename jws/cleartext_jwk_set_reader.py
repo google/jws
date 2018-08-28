@@ -11,7 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Static methods for reading cleartext keysets."""
+"""Static methods for reading cleartext keysets.
+
+Warning: storing cleartext keysets in source code or disk is a bad practice.
+User
+should use Key Management System (KMS) such as Cloud KMS
+(https://cloud.google.com/kms/) or AWS KMS (https://aws.amazon.com/kms/) to
+manage raw Jwk Keyset.
+"""
 
 __author__ = "quannguyen@google.com (quan nguyen)"
 
@@ -86,7 +93,8 @@ class CleartextJwkSetReader(object):
 
     Args:
       json_keys: string, a set of Jwk keys as defined at rfc7517#section-5.1. If
-        the field "keys" is missing, we'll treat it as a single key.
+        the field "keys" is missing, we'll treat it as a single key. Each single
+        key format is defined at https://tools.ietf.org/html/rfc7518#section-6.
 
     Raises:
       UnsupportedAlgorithm: if the key type is not supported.
@@ -109,6 +117,9 @@ class CleartextJwkSetReader(object):
   @classmethod
   def _read_single_json_key(cls, parsed_key):
     """Reads a parsed json key and transform it to Jwk key.
+
+    The key format is defined at
+    https://tools.ietf.org/html/rfc7518#section-6.
 
     Args:
       parsed_key: a Python reprenstation of Json object.

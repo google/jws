@@ -118,33 +118,90 @@ sudo python setup.py install
 
 To test jws: `sudo python setup.py test`
 
-## Usage
+## Example Usage
+### Sign and verify using ECDSA
 
 ```
+# Warning: storing cleartext keysets in source code or disk is a bad practice. User
+# should use Key Management System (KMS) such as Cloud KMS
+# (https://cloud.google.com/kms/) or AWS KMS (https://aws.amazon.com/kms/) to
+# manage raw Jwk Keyset.
 import jws
 
-es256_ecdsa_token = 'eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.DtEhU3ljbEg8L38VWAfUAqOyKAM6-Xx-F4GawxaepmXFCgfTjDxw5djxLa8ISlSApmWQxfKTUJqPP3-Kg6NU1Q'.encode('utf-8')
+test_pem_ec_p256_priv_key = r"""
+-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIBZJ/P6e1I/nQiBnQxx9aYDPAjwUtbV9Nffuzfubyuw8oAoGCCqGSM49
+AwEHoUQDQgAEKSPVJGELbULai+viQc3Zz95+x2NiFvjsDlqmh6rDNeiVuwiwdf5l
+lyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
+-----END EC PRIVATE KEY-----"""
 
-es256_ecdsa_pub_key = r"""
-    {
-      "kty":"EC",
-      "crv":"P-256",
-      "x":"f83OJ3D2xF1Bg8vub9tLe1gHMzV76e8Tus9uPHvRVEU",
-      "y":"x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0",
-      "alg":"ES256"
-    }"""
-# Set up phase: parse the key and initialize the verifier.
-key = jws.CleartextJwkSetReader.from_json(es256_ecdsa_pub_key)
-verifier = jws.JwtPublicKeyVerify(key, 'joe', None, None, 1300819380)
+test_pem_ec_p256_pub_key = r"""
+-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEKSPVJGELbULai+viQc3Zz95+x2Ni
+FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
+-----END PUBLIC KEY-----"""
 
-# Verify phase
+test_header_es256 = {'typ': 'JWT', 'alg': 'ES256'}
+test_payload = {
+    'aud': 'aud1',
+    'sub': 'subject1',
+    'iss': 'issuer1',
+}
+
+# Sign the token
+rsa_priv_key = jws.CleartextJwkSetReader.from_pem(
+    test_pem_ec_p256_priv_key.encode('utf-8'), 'ES256')
+signer = jws.JwtPublicKeySign(rsa_priv_key)
+signed_token = signer.sign(test_header_es256, test_payload)
+
+# Verify the token
+rsa_pub_key = jws.CleartextJwkSetReader.from_pem(
+    test_pem_ec_p256_pub_key.encode('utf-8'), 'ES256')
+# Set up verifier with expected issuer, subject and audiences.
+verifier = jws.JwtPublicKeyVerify(rsa_pub_key, 'issuer1', 'subject1', ['aud1'])
 try:
-  verified_payload = verifier.verify(es256_ecdsa_token)
-  print(verified_payload)
-  print(verified_payload['iss'] == 'joe' and verified_payload['exp']== 1300819380)
-except jws.SecurityException:
-  fail
+  verified_payload = verifier.verify(signed_token)
+  print("Do something with verified_payload here", verified_payload)
+except jws.SecurityException as e:
+  print('Valid token, should not throw exception:', e)
+
 
 ```
+### Authenticate and verify using HMAC
 
+```
+# Warning: storing cleartext keysets in source code or disk is a bad practice. User
+# should use Key Management System (KMS) such as Cloud KMS
+# (https://cloud.google.com/kms/) or AWS KMS (https://aws.amazon.com/kms/) to
+# manage raw Jwk Keyset.
+import jws
+# Test HMAC key from https://tools.ietf.org/html/rfc7515#appendix-A.1
+json_hmac_key = r"""
+  {
+    "kty":"oct",
+    "k":"AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow",
+    "alg":"HS256"
+  }"""
+
+test_header_hmac = {'typ': 'JWT', 'alg': 'HS256'}
+test_payload = {
+    'aud': 'aud1',
+    'sub': 'subject1',
+    'iss': 'issuer1',
+}
+
+# Authenticator
+mac_key = jws.CleartextJwkSetReader.from_json(json_hmac_key)
+authenticator = jws.JwtMacAuthenticator(mac_key)
+authenticated_token = authenticator.authenticate(test_header_hmac,
+                                          test_payload)
+# Set up verifier with expected issuer, subject and audiences.
+verifier = jws.JwtMacVerify(mac_key, 'issuer1', 'subject1', ['aud1'])
+try:
+  verified_payload = verifier.verify(authenticated_token)
+  print("Do something with verified_payload here", verified_payload)
+except jws.SecurityException as e:
+  print('Valid token, should not throw exception:', e)
+
+````
 > This is not an official Google product.
