@@ -122,20 +122,23 @@ To test jws: `sudo python setup.py test`
 ### Sign and verify using ECDSA
 
 ```
-# Warning: storing cleartext keysets in source code or disk is a bad practice. User
-# should use Key Management System (KMS) such as Cloud KMS
+# Note that sign and verify using RSA is similar.
+# Warning: storing cleartext keysets in source code or disk is a bad practice.
+# User should use Key Management System (KMS) such as Cloud KMS
 # (https://cloud.google.com/kms/) or AWS KMS (https://aws.amazon.com/kms/) to
 # manage raw Jwk Keyset.
 import jws
 
-test_pem_ec_p256_priv_key = r"""
+# EC P-256 private key in PEM format
+private_key = r"""
 -----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIBZJ/P6e1I/nQiBnQxx9aYDPAjwUtbV9Nffuzfubyuw8oAoGCCqGSM49
 AwEHoUQDQgAEKSPVJGELbULai+viQc3Zz95+x2NiFvjsDlqmh6rDNeiVuwiwdf5l
 lyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
 -----END EC PRIVATE KEY-----"""
 
-test_pem_ec_p256_pub_key = r"""
+# EC P-256 public key in PEM format.
+public_key = r"""
 -----BEGIN PUBLIC KEY-----
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEKSPVJGELbULai+viQc3Zz95+x2Ni
 FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
@@ -149,29 +152,27 @@ test_payload = {
 }
 
 # Sign the token
-rsa_priv_key = jws.CleartextJwkSetReader.from_pem(
-    test_pem_ec_p256_priv_key.encode('utf-8'), 'ES256')
-signer = jws.JwtPublicKeySign(rsa_priv_key)
+jwk_priv_key = jws.CleartextJwkSetReader.from_pem(
+    private_key.encode('utf-8'), 'ES256')
+signer = jws.JwtPublicKeySign(jwk_priv_key)
 signed_token = signer.sign(test_header_es256, test_payload)
 
 # Verify the token
-rsa_pub_key = jws.CleartextJwkSetReader.from_pem(
-    test_pem_ec_p256_pub_key.encode('utf-8'), 'ES256')
+jwk_pub_key = jws.CleartextJwkSetReader.from_pem(
+    public_key.encode('utf-8'), 'ES256')
 # Set up verifier with expected issuer, subject and audiences.
-verifier = jws.JwtPublicKeyVerify(rsa_pub_key, 'issuer1', 'subject1', ['aud1'])
+verifier = jws.JwtPublicKeyVerify(jwk_pub_key, 'issuer1', 'subject1', ['aud1'])
 try:
   verified_payload = verifier.verify(signed_token)
-  print("Do something with verified_payload here", verified_payload)
+  print('JWT successfully verified.', verified_payload)
 except jws.SecurityException as e:
-  print('Valid token, should not throw exception:', e)
-
-
+  print('JWT could not be verified!', e)
 ```
 ### Authenticate and verify using HMAC
 
 ```
-# Warning: storing cleartext keysets in source code or disk is a bad practice. User
-# should use Key Management System (KMS) such as Cloud KMS
+# Warning: storing cleartext keysets in source code or disk is a bad practice.
+# User should use Key Management System (KMS) such as Cloud KMS
 # (https://cloud.google.com/kms/) or AWS KMS (https://aws.amazon.com/kms/) to
 # manage raw Jwk Keyset.
 import jws
@@ -193,15 +194,14 @@ test_payload = {
 # Authenticator
 mac_key = jws.CleartextJwkSetReader.from_json(json_hmac_key)
 authenticator = jws.JwtMacAuthenticator(mac_key)
-authenticated_token = authenticator.authenticate(test_header_hmac,
-                                          test_payload)
+authenticated_token = authenticator.authenticate(test_header_hmac, test_payload)
 # Set up verifier with expected issuer, subject and audiences.
 verifier = jws.JwtMacVerify(mac_key, 'issuer1', 'subject1', ['aud1'])
 try:
   verified_payload = verifier.verify(authenticated_token)
-  print("Do something with verified_payload here", verified_payload)
+  print('JWT successfully verified.', verified_payload)
 except jws.SecurityException as e:
-  print('Valid token, should not throw exception:', e)
-
+  print('JWT could not be verified!', e)
 ````
+
 > This is not an official Google product.
