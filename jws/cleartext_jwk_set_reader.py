@@ -59,14 +59,10 @@ class CleartextJwkSetReader(object):
     Returns:
       A JwkSet.
     """
-    if algorithm not in [
-        "RS256", "RS384", "RS512", "ES256", "ES384", "ES512", "PS256", "PS384",
-        "PS512"
-    ]:
-      raise exceptions.UnsupportedAlgorithm(
-          "Unknown algorithm: %s" % (algorithm))
+    rsa_algorithms = ["RS256", "RS384", "RS512", "PS256", "PS384", "PS512"]
+    ecdsa_algorithms = ["ES256", "ES384", "ES512"]
 
-    if algorithm in ["RS256", "RS384", "RS512", "PS256", "PS384", "PS512"]:
+    if algorithm in rsa_algorithms:
       if isinstance(key, rsa.RSAPrivateKey):
         return JwkSet([Jwk("RSA", kid, algorithm, None, key, key.public_key())])
       elif isinstance(key, rsa.RSAPublicKey):
@@ -75,7 +71,7 @@ class CleartextJwkSetReader(object):
         raise exceptions.UnsupportedAlgorithm(
             "Unsupported mismatch between algorithm: %s and cryptography key:%s"
             % (algorithm, key))
-    else:
+    elif algorithm in ecdsa_algorithms:
       if isinstance(key, ec.EllipticCurvePrivateKey):
         return JwkSet([Jwk("EC", kid, algorithm, None, key, key.public_key())])
       elif isinstance(key, ec.EllipticCurvePublicKey):
@@ -84,6 +80,9 @@ class CleartextJwkSetReader(object):
         raise exceptions.UnsupportedAlgorithm(
             "Unsupported mismatch between algorithm: %s and cryptography key:%s"
             % (algorithm, key))
+    else:
+      raise exceptions.UnsupportedAlgorithm(
+          "Unknown algorithm: %s" % (algorithm))
 
   @classmethod
   def from_pem(cls, pem_key, algorithm, kid=""):

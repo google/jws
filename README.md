@@ -202,6 +202,6 @@ try:
   print('JWT successfully verified.', verified_payload)
 except jws.SecurityException as e:
   print('JWT could not be verified!', e)
-````
+```
 
 > This is not an official Google product.
