@@ -24,6 +24,10 @@ import calendar
 import datetime
 import jws
 import six
+from cryptography import exceptions
+from cryptography.hazmat import backends
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
 
 # TODO(quannguyen): Add more tests.
@@ -437,6 +441,66 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
     json_header_es256['kid'] = 'kid0'
     self.assertRaises(SecurityException, signer.sign, json_header_es256,
                       self.test_payload)
+
+  def test_jws_rsa_from_cryptography_key(self):
+    # Sign the token
+    priv_key = load_pem_private_key(
+        self.test_pem_rsa_2048_priv_key.encode('utf-8'),
+        None,
+        backend=backends.default_backend())
+    jwk_priv_key = jws.CleartextJwkSetReader.from_cryptography_key(
+        priv_key, 'RS256')
+    signer = jws.JwsPublicKeySign(jwk_priv_key)
+    signed_token = signer.sign(self.test_header_rsa, self.test_payload)
+
+    # Verify the token
+    # The real use case is that cryptography supports extracting public key from
+    # certificate, but we simulate it here by reading it from PEM.
+    pub_key = load_pem_public_key(
+        self.test_pem_rsa_2048_pub_key.encode('utf-8'),
+        backend=backends.default_backend())
+    jwk_pub_key = jws.CleartextJwkSetReader.from_cryptography_key(
+        pub_key, 'RS256')
+    verifier = jws.JwsPublicKeyVerify(jwk_pub_key)
+    try:
+      verifier.verify(signed_token)
+    except SecurityException:
+      self.fail('Valid token, should not throw exception')
+
+  def test_jws_ec_from_cryptography_key(self):
+    # Sign the token.
+    priv_key = load_pem_private_key(
+        self.test_pem_ec_p256_priv_key.encode('utf-8'),
+        None,
+        backend=backends.default_backend())
+    jwk_priv_key = jws.CleartextJwkSetReader.from_cryptography_key(
+        priv_key, 'ES256')
+    signer = jws.JwsPublicKeySign(jwk_priv_key)
+    signed_token = signer.sign(self.test_header_es256, self.test_payload)
+
+    # Verify the token.
+    # The real use case is that cryptography supports extracting public key from
+    # certificate, but we simulate it here by reading it from PEM.
+    pub_key = load_pem_public_key(
+        self.test_pem_ec_p256_pub_key.encode('utf-8'),
+        backend=backends.default_backend())
+    jwk_pub_key = jws.CleartextJwkSetReader.from_cryptography_key(
+        pub_key, 'ES256')
+    verifier = jws.JwsPublicKeyVerify(jwk_pub_key)
+    try:
+      verifier.verify(signed_token)
+    except SecurityException:
+      self.fail('Valid token, should not throw exception')
+
+  def test_jws_ec_from_cryptography_key_algorithm_mismatch(self):
+    # Sign the token.
+    priv_key = load_pem_private_key(
+        self.test_pem_ec_p256_priv_key.encode('utf-8'),
+        None,
+        backend=backends.default_backend())
+    self.assertRaises(exceptions.UnsupportedAlgorithm,
+                      jws.CleartextJwkSetReader.from_cryptography_key, priv_key,
+                      'RS256')
 
   def test_jws_rsa_from_pem_key(self):
     # Sign the token
