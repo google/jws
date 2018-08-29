@@ -22,21 +22,68 @@ manage raw Jwk Keyset.
 __author__ = "quannguyen@google.com (quan nguyen)"
 
 import json
-
+from . import jwsutil
 from cryptography import exceptions
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
-
-from . import jwsutil
 from .jwk import Jwk
 from .jwk import JwkSet
 
 
 class CleartextJwkSetReader(object):
   """Static methods for reading cleartext keysets."""
+
+  @classmethod
+  def from_cryptography_key(cls, key, algorithm, kid=""):
+    """Transform cryptography's key to Jwk key.
+
+    As cryptography's key doesn't specify the full algorithm to use (e.g. a RSA
+    key doesn't specify which hash function should be used), the caller has to
+    specify what algorithm that it would use the key for.
+
+    Args:
+      key: rsa.RSAPrivateKey, rsa.RSAPublicKey, ec.EllipticCurvePrivateKey or
+        ec.EllipticCurvePublicKey
+      algorithm: string, RSA or ECDSA algorithm as defined at
+        https://tools.ietf.org/html/rfc7518#section-3.1.
+      kid: string, Key ID as defined at
+        https://tools.ietf.org/html/rfc7515#section-4.1.4.
+
+    Raises:
+      UnsupportedAlgorithm: if the algorithm is not supported or cryptography
+      key has error.
+
+    Returns:
+      A JwkSet.
+    """
+    if algorithm not in [
+        "RS256", "RS384", "RS512", "ES256", "ES384", "ES512", "PS256", "PS384",
+        "PS512"
+    ]:
+      raise exceptions.UnsupportedAlgorithm(
+          "Unknown algorithm: %s" % (algorithm))
+
+    if algorithm in ["RS256", "RS384", "RS512", "PS256", "PS384", "PS512"]:
+      if isinstance(key, rsa.RSAPrivateKey):
+        return JwkSet([Jwk("RSA", kid, algorithm, None, key, key.public_key())])
+      elif isinstance(key, rsa.RSAPublicKey):
+        return JwkSet([Jwk("RSA", kid, algorithm, None, None, key)])
+      else:
+        raise exceptions.UnsupportedAlgorithm(
+            "Unsupported mismatch between algorithm: %s and cryptography key:%s"
+            % (algorithm, key))
+    else:
+      if isinstance(key, ec.EllipticCurvePrivateKey):
+        return JwkSet([Jwk("EC", kid, algorithm, None, key, key.public_key())])
+      elif isinstance(key, ec.EllipticCurvePublicKey):
+        return JwkSet([Jwk("EC", kid, algorithm, None, None, key)])
+      else:
+        raise exceptions.UnsupportedAlgorithm(
+            "Unsupported mismatch between algorithm: %s and cryptography key:%s"
+            % (algorithm, key))
 
   @classmethod
   def from_pem(cls, pem_key, algorithm, kid=""):
