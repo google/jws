@@ -243,8 +243,8 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
     try:
       verified_payload = verifier.verify(self.rsa_token)
       self.assertEqual(
-          '{"iss":"joe",\r\n "exp":1300819380,\r\n "http://example.com/is_root":true}'.
-          encode('utf-8'), verified_payload)
+          '{"iss":"joe",\r\n "exp":1300819380,\r\n "http://example.com/is_root":true}'
+          .encode('utf-8'), verified_payload)
     except SecurityException:
       self.fail('Valid token, should not throw exception')
     for modified_token in _modify_token(self.rsa_token):
@@ -376,6 +376,8 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
       verifier.verify(signed_token_kid1)
     except SecurityException:
       self.fail('Valid token, should not throw exception')
+    for modified_token in _modify_token(signed_token_kid1):
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
     # The signature is valid but the kids don't match.
     self.assertRaises(SecurityException, verifier.verify, signed_token_kid2)
 
@@ -388,8 +390,8 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
     try:
       verified_payload = verifier.verify(self.hmac_token)
       self.assertEqual(
-          '{"iss":"joe",\r\n "exp":1300819380,\r\n "http://example.com/is_root":true}'.
-          encode('utf-8'), verified_payload)
+          '{"iss":"joe",\r\n "exp":1300819380,\r\n "http://example.com/is_root":true}'
+          .encode('utf-8'), verified_payload)
     except SecurityException:
       self.fail('Valid token, should not throw exception')
     for modified_token in _modify_token(self.hmac_token):
@@ -407,16 +409,15 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
       # Authenticator
       mac_key = jws.CleartextJwkSetReader.from_json(json_hmac_key)
       authenticator = jws.JwsMacAuthenticator(mac_key)
-      signed_token = authenticator.authenticate(json_header_hmac,
-                                                self.test_payload)
+      authenticated_token = authenticator.authenticate(json_header_hmac,
+                                                       self.test_payload)
       # Verify
       verifier = jws.JwsMacVerify(mac_key)
       try:
-        verifier.verify(signed_token)
+        verifier.verify(authenticated_token)
       except SecurityException:
         self.fail('Valid token, should not throw exception')
-
-      for modified_token in _modify_token(signed_token):
+      for modified_token in _modify_token(authenticated_token):
         self.assertRaises(SecurityException, verifier.verify, modified_token)
 
   def test_jws_with_mismatch_kid_or_algorithm(self):
@@ -466,6 +467,8 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
       verifier.verify(signed_token)
     except SecurityException:
       self.fail('Valid token, should not throw exception')
+    for modified_token in _modify_token(signed_token):
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
 
   def test_jws_ec_from_cryptography_key(self):
     # Sign the token.
@@ -491,6 +494,8 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
       verifier.verify(signed_token)
     except SecurityException:
       self.fail('Valid token, should not throw exception')
+    for modified_token in _modify_token(signed_token):
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
 
   def test_jws_ec_from_cryptography_key_algorithm_mismatch(self):
     # Sign the token.
@@ -517,6 +522,8 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
       verifier.verify(signed_token)
     except SecurityException:
       self.fail('Valid token, should not throw exception')
+    for modified_token in _modify_token(signed_token):
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
 
   def test_jws_ec_from_pem_key(self):
     # Sign the token
@@ -533,6 +540,8 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
       verifier.verify(signed_token)
     except SecurityException:
       self.fail('Valid token, should not throw exception')
+    for modified_token in _modify_token(signed_token):
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
 
   def test_jwt_public_key_verifier_with_issuer_subject_audiences(self):
     # Sign
@@ -550,6 +559,9 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
       self.assertEqual(parsed_payload['sub'], self.test_payload['sub'])
     except SecurityException:
       self.fail('Valid token, should not throw exception')
+    for modified_token in _modify_token(signed_token):
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
+
     # Correct issuer, subject and audience.
     verifier = jws.JwtPublicKeyVerify(pub_key, 'issuer1', 'subject1',
                                       ['aud1', 'aud2'])
@@ -585,6 +597,9 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
       self.assertTrue(verifier.verify(signed_token))
     except SecurityException:
       self.fail('Valid token, should not throw exception')
+    # Modify token.
+    for modified_token in _modify_token(signed_token):
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
     # Invalid exp time.
     payload = dict(self.test_payload)
     payload['exp'] = _get_unix_timestamp() - 100
@@ -607,6 +622,9 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
       verifier.verify(signed_token)
     except SecurityException:
       self.fail('Valid token, should not throw exception')
+    # Modify token.
+    for modified_token in _modify_token(signed_token):
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
     # Invalid nbf time.
     payload = dict(self.test_payload)
     payload['nbf'] = _get_unix_timestamp() + 100
@@ -619,41 +637,48 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
       verifier.verify(signed_token)
     except SecurityException:
       self.fail('Valid token, should not throw exception')
+    # Modify token.
+    for modified_token in _modify_token(signed_token):
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
 
   def test_jwt_mac_verifier_with_issuer_subject_audiences(self):
     # Sign
     key = jws.CleartextJwkSetReader.from_json(self.json_hmac_key)
     authenticator = jws.JwtMacAuthenticator(key)
-    signed_token = authenticator.authenticate(self.test_header_hmac,
-                                              self.test_payload)
+    authenticated_token = authenticator.authenticate(self.test_header_hmac,
+                                                     self.test_payload)
     # Verify
     # Ignore issuer, subject and audience.
     verifier = jws.JwtMacVerify(key)
     try:
-      parsed_payload = verifier.verify(signed_token)
+      parsed_payload = verifier.verify(authenticated_token)
       self.assertEqual(parsed_payload['iss'], self.test_payload['iss'])
       self.assertEqual(parsed_payload['aud'], self.test_payload['aud'])
       self.assertEqual(parsed_payload['sub'], self.test_payload['sub'])
     except SecurityException:
       self.fail('Valid token, should not throw exception')
+    # Modify token.
+    for modified_token in _modify_token(authenticated_token):
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
+
     # Correct issuer, subject and audience.
     verifier = jws.JwtMacVerify(key, 'issuer1', 'subject1', ['aud1', 'aud2'])
     try:
-      verifier.verify(signed_token)
+      verifier.verify(authenticated_token)
     except SecurityException:
       self.fail('Valid token, should not throw exception')
     # Modify token.
-    for modified_token in _modify_token(signed_token):
+    for modified_token in _modify_token(authenticated_token):
       self.assertRaises(SecurityException, verifier.verify, modified_token)
     # Incorrect issuer.
     verifier = jws.JwtMacVerify(key, 'issuer0', 'subject1', ['aud1'])
-    self.assertRaises(SecurityException, verifier.verify, signed_token)
+    self.assertRaises(SecurityException, verifier.verify, authenticated_token)
     # Incorrect subject.
     verifier = jws.JwtMacVerify(key, 'issuer1', 'subject0', ['aud1'])
-    self.assertRaises(SecurityException, verifier.verify, signed_token)
+    self.assertRaises(SecurityException, verifier.verify, authenticated_token)
     # Incorrect audience.
     verifier = jws.JwtMacVerify(key, 'issuer1', 'subject1', ['aud'])
-    self.assertRaises(SecurityException, verifier.verify, signed_token)
+    self.assertRaises(SecurityException, verifier.verify, authenticated_token)
 
   def test_jwt_mac_verifier_with_exp_nbf(self):
     # Sign
@@ -662,47 +687,63 @@ FvjsDlqmh6rDNeiVuwiwdf5llyZ0gbLJ/vheUAwtcA2z0csWU60MfBup3Q==
     # Valid exp time.
     payload = dict(self.test_payload)
     payload['exp'] = _get_unix_timestamp() + 100
-    signed_token = authenticator.authenticate(self.test_header_hmac, payload)
+    authenticated_token = authenticator.authenticate(self.test_header_hmac,
+                                                     payload)
     # Verify
     verifier = jws.JwtMacVerify(key)
     try:
-      self.assertTrue(verifier.verify(signed_token))
+      self.assertTrue(verifier.verify(authenticated_token))
     except SecurityException:
       self.fail('Valid token, should not throw exception')
+    # Modify token.
+    for modified_token in _modify_token(authenticated_token):
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
     # Invalid exp time.
     payload = dict(self.test_payload)
     payload['exp'] = _get_unix_timestamp() - 100
-    signed_token = authenticator.authenticate(self.test_header_hmac, payload)
+    authenticated_token = authenticator.authenticate(self.test_header_hmac,
+                                                     payload)
     # Verify
-    self.assertRaises(SecurityException, verifier.verify, signed_token)
+    self.assertRaises(SecurityException, verifier.verify, authenticated_token)
     # Add clock_skew_tolerance
     verifier = jws.JwtMacVerify(key, None, None, None, 200)
     try:
-      verifier.verify(signed_token)
+      verifier.verify(authenticated_token)
     except SecurityException:
       self.fail('Valid token, should not throw exception')
+    # Modify token.
+    for modified_token in _modify_token(authenticated_token):
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
     verifier = jws.JwtMacVerify(key)
     # Valid nbf time.
     payload = dict(self.test_payload)
     payload['nbf'] = _get_unix_timestamp() - 100
-    signed_token = authenticator.authenticate(self.test_header_hmac, payload)
+    authenticated_token = authenticator.authenticate(self.test_header_hmac,
+                                                     payload)
     # Verify
     try:
-      verifier.verify(signed_token)
+      verifier.verify(authenticated_token)
     except SecurityException:
       self.fail('Valid token, should not throw exception')
+    # Modify token.
+    for modified_token in _modify_token(authenticated_token):
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
     # Invalid nbf time.
     payload = dict(self.test_payload)
     payload['nbf'] = _get_unix_timestamp() + 100
-    signed_token = authenticator.authenticate(self.test_header_hmac, payload)
+    authenticated_token = authenticator.authenticate(self.test_header_hmac,
+                                                     payload)
     # Verify
-    self.assertRaises(SecurityException, verifier.verify, signed_token)
+    self.assertRaises(SecurityException, verifier.verify, authenticated_token)
     # Add clock_skew_tolerance
     verifier = jws.JwtMacVerify(key, None, None, None, 200)
     try:
-      verifier.verify(signed_token)
+      verifier.verify(authenticated_token)
     except SecurityException:
       self.fail('Valid token, should not throw exception')
+    # Modify token.
+    for modified_token in _modify_token(authenticated_token):
+      self.assertRaises(SecurityException, verifier.verify, modified_token)
 
 
 def _get_unix_timestamp():
