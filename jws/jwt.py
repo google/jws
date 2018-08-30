@@ -16,14 +16,15 @@
 Jwt uses jws underneath. The difference between jws and jwt is that
 jws only verifies the signature while jwt verifies both the signature and
 claims as defined at https://tools.ietf.org/html/rfc7519#section-4.1. In
-particular, in addition to signature verification, jwt does the followings:
+particular, in addition to signature verification, jwt does the following:
 
   1. Verify expected issuer, subjects and list of audiences. However, the
   verification is **optional** because one, jwt does not know what your expected
   issuer, subject and list of audiences are and second, RFCs do not mandate
-  these claims. As a consequence, when you construct the verifier, if you don't
-  specify these fields, jwt does *not** know how to verify them, and hence does
-  **not** verify them.
+  these claims. As a consequence, when you construct the verifier:
+    + If you do not specify these fields, jwt does *not** know how to verify
+    them, and hence does **not** verify them.
+    + If you specify these fields, the verification is automatic and mandatory.
 
   2. When 'exp', 'nbf' are in the claims, jwt automatically verifies them.
 
