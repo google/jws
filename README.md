@@ -88,6 +88,10 @@ receiver doesn’t know in advance which key should be used for verification. Th
 main difficulty in JWT is that at the time of parsing JWK, key type or kid don’t
 fully specify what algorithm will be used during sign/verify or
 compute_mac/verify_mac. For instance, let’s look at the key:
+```
+{"kty":"oct", "k":"AyM1SysPpbyDfgZld3umj1qzKObwVMkoqQ-EstJQLr_T-1qS0gZH75
+     aKtMN3Yj0iPS4hcgUuTwjAzZr1Z9CAow", "kid":"1234"}
+```
 
 There is no way to tell whether the key should be used as encryption key or HMAC
 key. Even if we know that it’s used as HMAC key, we still don’t know what hash
