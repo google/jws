@@ -31,4 +31,7 @@ setup(
     url='https://github.com/google/jws',
     packages=find_packages(exclude=['tests']),
     test_suite='tests',
+    install_requires=[
+        'cryptography'
+    ]
 )

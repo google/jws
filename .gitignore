@@ -3,6 +3,7 @@
 *.egg-info
 *.swp
 *.swo
+.eggs
 build
 dist
 docs
