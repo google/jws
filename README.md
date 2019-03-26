@@ -2,7 +2,7 @@
 
 ## Introduction
 
-JWT (rfc7519) is widely used. However, the RFC standards JSON Web Encryption
+JWT (rfc7519) is widely used. However    the RFC standards JSON Web Encryption
 (JWE) (rfc7516), JSON Web Signature (JWS) (rfc7515), JSON Web Token (JWT)
 (rfc7519) contain several design mistakes which make both implementations and
 use of JWT dangerous. For instance, existing research such as
