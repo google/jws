@@ -1,4 +1,4 @@
-# JSON Web Signature (JWS)
+# JSON Web Signature (JWS) - An Amazing Project
 
 ## Introduction
 
@@ -30,9 +30,9 @@ We'll harden the API to make it difficult to misuse.
 
 ## Out of scope
 
-*   We will not support Json Web Encryption (JWE) or JWS JSON Serialization for
+*   We will not support JSON Web Encryption (JWE) or JWS JSON Serialization for
     security reasons.
-*   Defining a new better standard is out of scope of this library because it
+*   Defining a new better standard is out of the scope of this library because it
     would break compatibility.
 
 ## Security principles
